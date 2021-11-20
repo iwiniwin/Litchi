@@ -1,7 +1,17 @@
+using System.IO;
+
 namespace Litchi.IO
 {
-    public class VFileSystem
+    public static class VFileSystem
     {
-        
+        public static bool Exists(string path)
+        {
+            return true;
+        }
+
+        public static string ReadAllText(string path)
+        {
+            return "";
+        }
     }
 }
