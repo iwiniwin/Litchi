@@ -10,17 +10,7 @@ namespace Litchi.AssetManage
 
         public static void Init()
         {
-            // 加载Settings
-            if(VFileSystem.Exists(Global.kAssetManageSettingsPath))
-            {
-                m_Settings = AssetManageSettings.LoadFromString(VFileSystem.ReadAllText(Global.kAssetManageSettingsPath));
-            }
-            else
-            {
-                m_Settings = new AssetManageSettings();
-            }
-
-            switch(m_Settings.assetLoaderType)
+            switch(Settings.assetManage.assetLoaderType)
             {
                 case AssetLoaderType.AssetBundle:
                     m_Loader = new AssetBundleLoader();

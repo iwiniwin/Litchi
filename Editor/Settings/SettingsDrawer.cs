@@ -1,4 +1,4 @@
-namespace Litchi.Settings
+namespace Litchi.Editor
 {
     public class SettingsDrawer
     {

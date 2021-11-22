@@ -1,4 +1,4 @@
-namespace Litchi.Build
+namespace Litchi.Editor.Build
 {
     public class BuildSystem
     {
