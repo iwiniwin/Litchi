@@ -6,7 +6,7 @@ namespace Litchi.IO
     {
         public static bool Exists(string path)
         {
-            return true;
+            return false;
         }
 
         public static string ReadAllText(string path)
