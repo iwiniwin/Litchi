@@ -23,5 +23,10 @@ namespace Litchi.AssetManage
                     break;
             }
         }
+
+        public static T LoadAsset<T>(string path) where T : UnityEngine.Object
+        {
+            return null;
+        }
     }
 }

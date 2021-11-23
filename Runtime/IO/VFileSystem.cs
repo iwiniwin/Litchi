@@ -13,5 +13,10 @@ namespace Litchi.IO
         {
             return "";
         }
+
+        public static void WriteAllText(string path, string contents)
+        {
+            
+        }
     }
 }

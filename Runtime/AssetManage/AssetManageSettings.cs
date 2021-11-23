@@ -14,10 +14,5 @@ namespace Litchi.AssetManage
     public class AssetManageSettings
     {
         public AssetLoaderType assetLoaderType = AssetLoaderType.AssetDatabase;
-
-        public static AssetManageSettings LoadFromString(string jsonStr)
-        {
-            return null;
-        }
     }
 }
