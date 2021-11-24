@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEditor;
+using Litchi.Config;
 
 namespace Litchi.Editor
 {
@@ -31,13 +32,13 @@ namespace Litchi.Editor
 
         protected override void Draw()
         {
-            SettingsDrawer.DrawObjectFields(Litchi.Config.Settings.assetManage);
+            SettingsDrawer.DrawObjectFields(Settings.assetManage);
         }
         
         
         protected override void Save()
         {
-            
+            Settings.SaveToJSON(Settings.assetManage, Global.kAssetManageSettingsPath);
         }
     }
 

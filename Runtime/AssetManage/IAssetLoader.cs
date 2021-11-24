@@ -1,12 +1,13 @@
+using System;
+using Object = UnityEngine.Object;
+
 namespace Litchi.AssetManage
 {
     public interface IAssetLoader
     {
-        // void LoadAsset();
+        Object LoadAsset(string path, Type type);
+
         // void LoadAssetAsync();
-        
-        // void LoadAllAssets();
-        // void LoadAllAssetsAsync();
         
         // void UnloadAsset();
         // void UnloadAllAssets();

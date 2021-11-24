@@ -1,4 +1,4 @@
-namespace Litchi.Common
+namespace Litchi
 {
     public class TaskManager
     {
