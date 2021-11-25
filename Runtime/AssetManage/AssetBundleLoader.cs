@@ -9,5 +9,10 @@ namespace Litchi.AssetManage
         {
             return null;
         }
+
+        public AssetRequest LoadAssetAsync(string path, Type type)
+        {
+            return null;
+        }
     }
 }

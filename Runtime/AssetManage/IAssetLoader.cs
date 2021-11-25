@@ -7,7 +7,7 @@ namespace Litchi.AssetManage
     {
         Object LoadAsset(string path, Type type);
 
-        // void LoadAssetAsync();
+        AssetRequest LoadAssetAsync(string path, Type type);
         
         // void UnloadAsset();
         // void UnloadAllAssets();
