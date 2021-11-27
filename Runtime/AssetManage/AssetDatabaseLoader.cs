@@ -1,7 +1,6 @@
 #if UNITY_EDITOR
 using System;
 using System.Collections;
-using UnityEngine;
 using UnityEditor;
 using Object = UnityEngine.Object;
 
@@ -17,13 +16,19 @@ namespace Litchi.AssetManage
 
         public AssetRequest LoadAssetAsync(string path, Type type)
         {
-            Timer.instance.StartCoroutine(Test());
-            return new AssetRequest();
+            return AssetRequest.SimulateRequest((request) => {
+                request.asset = LoadAsset(path, type);
+            });
         }
 
-        public IEnumerator Test()
+        public void UnloadAsset(Object asset)
         {
-            yield return null;
+            // SceneManager.LoadScene
+        }
+
+        public void UnloadAllAssets()
+        {
+            // AssetDatabase.unload
         }
     }
 

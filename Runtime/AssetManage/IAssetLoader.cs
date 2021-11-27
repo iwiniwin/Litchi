@@ -9,11 +9,7 @@ namespace Litchi.AssetManage
 
         AssetRequest LoadAssetAsync(string path, Type type);
         
-        // void UnloadAsset();
-        // void UnloadAllAssets();
-
-        // void LoadScene();
-        // void LoadSceneAsync();
-        // void UnloadSceneAsync();
+        void UnloadAsset(Object asset);
+        void UnloadAllAssets();
     }
 }
