@@ -1,7 +1,8 @@
 {
     "name": "Unity.Litchi.Editor",
     "references": [
-        "Unity.Litchi"
+        "Unity.Litchi",
+        "Unity.AssetGraph.Editor"
     ],
     "includePlatforms": [
         "Editor"
@@ -14,6 +15,12 @@
     ],
     "autoReferenced": false,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.assetgraph",
+            "expression": "1.7.0",
+            "define": "ASSETGRAPH_1_7_OR_NEWER"
+        }
+    ],
     "noEngineReferences": false
 }
