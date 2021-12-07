@@ -9,26 +9,17 @@ using System.Collections.Generic;
 
 using V1=AssetBundleGraph;
 using Model=UnityEngine.AssetGraph.DataModel.Version2;
+using UnityEngine;
+using UnityEngine.AssetGraph;
 
-namespace UnityEngine.AssetGraph {
+namespace Litchi {
 
 	[CustomNode("Build/Build Asset Bundle Map", 90)]
-	public class AssetBundleMapBuilder : Node {
-
-        public enum OutputOption : int {
-            BuildInCacheDirectory,
-            ErrorIfNoOutputDirectoryFound,
-            AutomaticallyCreateIfNoOutputDirectoryFound,
-            DeleteAndRecreateOutputDirectory
-        }
+	public class AssetBundleMapBuilder : Node, Model.NodeDataImporter {
 
 		private static readonly string key = "0";
 
-        [SerializeField] private SerializableMultiTargetInt m_enabledBundleOptions;
-        [SerializeField] private SerializableMultiTargetString m_outputDir;
-        [SerializeField] private SerializableMultiTargetInt m_outputOption;
         [SerializeField] private SerializableMultiTargetString m_mapName;
-        [SerializeField] private bool m_overwriteImporterSetting;
 
 		public override string ActiveStyle {
 			get {
@@ -61,20 +52,18 @@ namespace UnityEngine.AssetGraph {
 		}
 
 		public override void Initialize(Model.NodeData data) {
-            m_enabledBundleOptions = new SerializableMultiTargetInt();
-            m_outputDir = new SerializableMultiTargetString();
-            m_outputOption = new SerializableMultiTargetInt((int)OutputOption.BuildInCacheDirectory);
             m_mapName = new SerializableMultiTargetString();
 
 			data.AddDefaultInputPoint();
 			data.AddDefaultOutputPoint();
 		}
+
+		public void Import(V1.NodeData v1, Model.NodeData v2) {
+            m_mapName = new SerializableMultiTargetString();
+		}
 			
 		public override Node Clone(Model.NodeData newData) {
 			var newNode = new AssetBundleMapBuilder();
-			newNode.m_enabledBundleOptions = new SerializableMultiTargetInt(m_enabledBundleOptions);
-            newNode.m_outputDir = new SerializableMultiTargetString(m_outputDir);
-            newNode.m_outputOption = new SerializableMultiTargetInt(m_outputOption);
             newNode.m_mapName = new SerializableMultiTargetString (m_mapName);
 
 			newData.AddDefaultInputPoint();
@@ -85,122 +74,19 @@ namespace UnityEngine.AssetGraph {
 
 		public override void OnInspectorGUI(NodeGUI node, AssetReferenceStreamManager streamManager, NodeGUIEditor editor, Action onValueChanged) {
 
-			if (m_enabledBundleOptions == null) {
-				return;
-			}
-
 			EditorGUILayout.HelpBox("Build Asset Bundle Map: Build asset bundles with given asset bundle settings.", MessageType.Info);
 			editor.UpdateNodeName(node);
 
-			GUILayout.Space(10f);
+			GUILayout.Space(8f);
 
-			//Show target configuration tab
-			editor.DrawPlatformSelector(node);
-			using (new EditorGUILayout.VerticalScope(GUI.skin.box)) {
-				var disabledScope = editor.DrawOverrideTargetToggle(node, m_enabledBundleOptions.ContainsValueOf(editor.CurrentEditingGroup), (bool enabled) => {
-					using(new RecordUndoScope("Remove Target Bundle Options", node, true)){
-						if(enabled) {
-                            m_enabledBundleOptions[editor.CurrentEditingGroup] = m_enabledBundleOptions.DefaultValue;
-                            m_outputDir[editor.CurrentEditingGroup] = m_outputDir.DefaultValue;
-                            m_outputOption[editor.CurrentEditingGroup] = m_outputOption.DefaultValue;
-                            m_mapName[editor.CurrentEditingGroup] = m_mapName.DefaultValue;
-						}  else {
-                            m_enabledBundleOptions.Remove(editor.CurrentEditingGroup);
-                            m_outputDir.Remove(editor.CurrentEditingGroup);
-                            m_outputOption.Remove(editor.CurrentEditingGroup);
-                            m_mapName.Remove(editor.CurrentEditingGroup);
-						}
-						onValueChanged();
-					}
-				} );
+			EditorGUILayout.HelpBox("Build Asset Bundle Map: Build asset bundles with given asset bundle settings.", MessageType.Info);
 
-				using (disabledScope) {
-                    OutputOption opt = (OutputOption)m_outputOption[editor.CurrentEditingGroup];
-                    var newOption = (OutputOption)EditorGUILayout.EnumPopup("Output Option", opt);
-                    if(newOption != opt) {
-                        using(new RecordUndoScope("Change Output Option", node, true)){
-                            m_outputOption[editor.CurrentEditingGroup] = (int)newOption;
-                            onValueChanged();
-                        }
-                    }
-
-                    using (new EditorGUI.DisabledScope (opt == OutputOption.BuildInCacheDirectory)) {
-                        var newDirPath = editor.DrawFolderSelector ("Output Directory", "Select Output Folder", 
-                            m_outputDir[editor.CurrentEditingGroup],
-                            Application.dataPath + "/../",
-                            (string folderSelected) => {
-                                var projectPath = Directory.GetParent(Application.dataPath).ToString();
-
-                                if(projectPath == folderSelected) {
-                                    folderSelected = string.Empty;
-                                } else {
-                                    var index = folderSelected.IndexOf(projectPath);
-                                    if(index >= 0 ) {
-                                        folderSelected = folderSelected.Substring(projectPath.Length + index);
-                                        if(folderSelected.IndexOf('/') == 0) {
-                                            folderSelected = folderSelected.Substring(1);
-                                        }
-                                    }
-                                }
-                                return folderSelected;
-                            }
-                        );
-                        if (newDirPath != m_outputDir[editor.CurrentEditingGroup]) {
-                            using(new RecordUndoScope("Change Output Directory", node, true)){
-                                m_outputDir[editor.CurrentEditingGroup] = newDirPath;
-                                onValueChanged();
-                            }
-                        }
-
-                        var outputDir = PrepareOutputDirectory (BuildTargetUtility.GroupToTarget(editor.CurrentEditingGroup), node.Data, false, false);
-
-                        if (opt == OutputOption.ErrorIfNoOutputDirectoryFound && 
-                            editor.CurrentEditingGroup != BuildTargetGroup.Unknown &&
-                            !string.IsNullOrEmpty(m_outputDir [editor.CurrentEditingGroup]) &&
-                            !Directory.Exists (outputDir)) 
-                        {
-                            using (new EditorGUILayout.HorizontalScope()) {
-                                EditorGUILayout.LabelField(outputDir + " does not exist.");
-                                if(GUILayout.Button("Create directory")) {
-                                    Directory.CreateDirectory(outputDir);
-                                }
-                            }
-                            EditorGUILayout.Space();
-
-                            string parentDir = Path.GetDirectoryName(m_outputDir[editor.CurrentEditingGroup]);
-                            if(Directory.Exists(parentDir)) {
-                                EditorGUILayout.LabelField("Available Directories:");
-                                string[] dirs = Directory.GetDirectories(parentDir);
-                                foreach(string s in dirs) {
-                                    EditorGUILayout.LabelField(s);
-                                }
-                            }
-                            EditorGUILayout.Space();
-                        }
-
-                        using (new EditorGUI.DisabledScope (!Directory.Exists (outputDir))) 
-                        {
-                            using (new EditorGUILayout.HorizontalScope ()) {
-                                GUILayout.FlexibleSpace ();
-                                if (GUILayout.Button (GUIHelper.RevealInFinderLabel)) {
-                                    EditorUtility.RevealInFinder (outputDir);
-                                }
-                            }
-                        }
-
-                        EditorGUILayout.HelpBox ("You can use '{Platform}' variable for Output Directory path to include platform name.", MessageType.Info);
-                    }
-
-                    GUILayout.Space (8f);
-
-                    var manifestName = m_mapName[editor.CurrentEditingGroup];
-                    var newManifestName = EditorGUILayout.TextField("Map Name", manifestName);
-                    if(newManifestName != manifestName) {
-                        using(new RecordUndoScope("Change Map Name", node, true)){
-                            m_mapName[editor.CurrentEditingGroup] = newManifestName;
-                            onValueChanged();
-                        }
-                    }
+			var mapName = m_mapName[editor.CurrentEditingGroup];
+			var newMapName = EditorGUILayout.TextField("Map Name", mapName);
+			if(newMapName != mapName) {
+				using(new RecordUndoScope("Change Map Name", node, true)){
+					m_mapName[editor.CurrentEditingGroup] = newMapName;
+					onValueChanged();
 				}
 			}
 		}
@@ -216,51 +102,22 @@ namespace UnityEngine.AssetGraph {
 				return;
 			}
 
-            var bundleOutputDir = PrepareOutputDirectory (target, node, false, true);
-
-			var bundleNames = incoming.SelectMany(v => v.assetGroups.Keys).Distinct().ToList();
-			var bundleVariants = new Dictionary<string, List<string>>();
-
-			// get all variant name for bundles
-			foreach(var ag in incoming) {
-				foreach(var name in ag.assetGroups.Keys) {
-					if(!bundleVariants.ContainsKey(name)) {
-						bundleVariants[name] = new List<string>();
-					}
-					var assets = ag.assetGroups[name];
-					foreach(var a in assets) {
-						var variantName = a.variantName;
-						if(!bundleVariants[name].Contains(variantName)) {
-							bundleVariants[name].Add(variantName);
-						}
-					}
-				}
-			}
-
-			// add manifest file
-            var manifestName = GetMapName(target, node, true);
-			bundleNames.Add( manifestName );
-			bundleVariants[manifestName] = new List<string>() {""};
-
 			if(connectionsToOutput != null && Output != null) {
 				UnityEngine.Assertions.Assert.IsTrue(connectionsToOutput.Any());
-
-				var outputDict = new Dictionary<string, List<AssetReference>>();
-				outputDict[key] = new List<AssetReference>();
-
-				foreach (var name in bundleNames) {
-					foreach(var v in bundleVariants[name]) {
-						string bundleName = (string.IsNullOrEmpty(v))? name : name + "." + v;
-						AssetReference bundle = AssetReferenceDatabase.GetAssetBundleReference( FileUtility.PathCombine(bundleOutputDir, bundleName) );
-						AssetReference manifest = AssetReferenceDatabase.GetAssetBundleReference( FileUtility.PathCombine(bundleOutputDir, bundleName + Model.Settings.MANIFEST_FOOTER) );
-						outputDict[key].Add(bundle);
-						outputDict[key].Add(manifest);
-					}
-				}
-
 				var dst = (connectionsToOutput == null || !connectionsToOutput.Any())? 
 					null : connectionsToOutput.First();
-				Output(dst, outputDict);
+
+				var ag = incoming.First();
+				var output = new Dictionary<string, List<AssetReference>>();
+				output[key] = new List<AssetReference>();
+				output[key].AddRange(ag.assetGroups[key]);
+
+				var bundleOutputDir = GetOutputDirectory(ag.assetGroups[key]);
+				var mapName = GetMapName(target, node, bundleOutputDir);
+				var outputPath = FileUtility.PathCombine(bundleOutputDir, mapName);
+				output[key].Add(AssetReferenceDatabase.GetReferenceWithType(outputPath, typeof(TextAsset)));
+
+				Output(dst, output);
 			}
 		}
 		
@@ -275,178 +132,73 @@ namespace UnityEngine.AssetGraph {
 				return;
 			}
 
-			var aggregatedGroups = new Dictionary<string, List<AssetReference>>();
-			aggregatedGroups[key] = new List<AssetReference>();
+			var bundleNames = new HashSet<string>();
 
 			if(progressFunc != null) progressFunc(node, "Collecting all inputs...", 0f);
 
-			foreach(var ag in incoming) {
-				foreach(var name in ag.assetGroups.Keys) {
-					if(!aggregatedGroups.ContainsKey(name)) {
-						aggregatedGroups[name] = new List<AssetReference>();
-					}
-					aggregatedGroups[name].AddRange(ag.assetGroups[name].AsEnumerable());
-				}
+			var ag = incoming.First();
+			foreach(var name in ag.assetGroups.Keys) {
+				bundleNames.UnionWith(ag.assetGroups[name].Select(v => v.fileName));
 			}
 
-            var bundleOutputDir = PrepareOutputDirectory (target, node, true, true);
-			var bundleNames = aggregatedGroups.Keys.ToList();
-			var bundleVariants = new Dictionary<string, List<string>>();
 
-			if(progressFunc != null) progressFunc(node, "Building bundle variants map...", 0.2f);
+            var bundleOutputDir = GetOutputDirectory(ag.assetGroups[key]);
+			var mapName = GetMapName(target, node, bundleOutputDir);
+			var outputPath = Path.Combine(bundleOutputDir, mapName);
 
-			// get all variant name for bundles
-			foreach(var name in aggregatedGroups.Keys) {
-				if(!bundleVariants.ContainsKey(name)) {
-					bundleVariants[name] = new List<string>();
-				}
-				var assets = aggregatedGroups[name];
-				foreach(var a in assets) {
-					var variantName = a.variantName;
-					if(!bundleVariants[name].Contains(variantName)) {
-						bundleVariants[name].Add(variantName);
-					}
-				}
-			}
+			if(progressFunc != null) progressFunc(node, "Building Asset Bundle Map...", 0.7f);
 
-			int validNames = 0;
-			foreach (var name in bundleNames) {
-				var assets = aggregatedGroups[name];
-				// we do not build bundle without any asset
-				if( assets.Count > 0 ) {
-					validNames += bundleVariants[name].Count;
-				}
-			}
-
-			
-
-			
-			var output = new Dictionary<string, List<AssetReference>>();
-			output[key] = new List<AssetReference>();
-
-            var manifestName = GetMapName (target, node, false);
-
-            if (!string.IsNullOrEmpty (m_mapName [target])) {
-                var projectPath = Directory.GetParent (Application.dataPath).ToString ();
-                var finalManifestName = GetMapName (target, node, true);
-                var from = FileUtility.PathCombine (projectPath, bundleOutputDir, manifestName);
-                var to = FileUtility.PathCombine (projectPath, bundleOutputDir, finalManifestName);
-
-                var fromPaths = new string[] { from, from + ".manifest" };
-                var toPaths = new string[] { to, to + ".manifest" };
-
-                for (var i = 0; i < fromPaths.Length; ++i) {
-                    if (File.Exists (toPaths[i])) {
-                        File.Delete (toPaths[i]);
-                    }
-                    File.Move (fromPaths[i], toPaths[i]);
-                }
-
-                manifestName = finalManifestName;
-            }
-
-            var generatedFiles = FileUtility.GetAllFilePathsInFolder(bundleOutputDir);
-
-			// add manifest file
-            bundleVariants.Add( manifestName.ToLower(), new List<string> { null } );
-			foreach (var path in generatedFiles) {
-				var fileName = path.Substring(bundleOutputDir.Length+1);
-				if( IsFileIntendedItem(fileName, bundleVariants) ) {
-                    if (fileName == manifestName) {
-                        output[key].Add( AssetReferenceDatabase.GetAssetBundleManifestReference(path) );
-                    } else {
-                        output[key].Add( AssetReferenceDatabase.GetAssetBundleReference(path) );
-                    }
-				}
-			}
+			BuildAssetBundleMap(outputPath, bundleNames);
 
 			if(Output != null) {
 				var dst = (connectionsToOutput == null || !connectionsToOutput.Any())? 
 					null : connectionsToOutput.First();
+				var output = new Dictionary<string, List<AssetReference>>();
+				output[key] = new List<AssetReference>();
+				output[key].AddRange(ag.assetGroups[key]);
+				output[key].Add(AssetReferenceDatabase.GetReferenceWithType(outputPath, typeof(TextAsset)));
 				Output(dst, output);
 			}
-
-
 		}
 
-        private string GetMapName(BuildTarget target, Model.NodeData node, bool finalName) {
-            if (finalName && !string.IsNullOrEmpty (m_mapName [target])) {
+		private void BuildAssetBundleMap(string outputPath, HashSet<string> bundleNames)
+		{
+			AssetBundleBuildMap map = AssetBundleBuildMap.GetBuildMap();
+			Dictionary<string, List<string>> assetAndBundlesMap = new Dictionary<string, List<string>>();
+			foreach(var bundleName in bundleNames)
+			{
+				string[] assetPaths = map.GetAssetPathsFromAssetBundle(bundleName);
+				foreach(var assetPath in assetPaths)
+				{
+					List<string> bundles;
+					if(!assetAndBundlesMap.TryGetValue(assetPath, out bundles))
+					{
+						bundles = new List<string>();
+						assetAndBundlesMap[assetPath] = bundles;
+					}
+					bundles.Add(bundleName);
+				}
+			}
+			AssetBundleUtility.CreateAssetBundleMap(assetAndBundlesMap, outputPath);
+		}
+
+		private string GetOutputDirectory(List<AssetReference> list)
+		{
+			return Path.GetDirectoryName(list.First().path);
+		}
+
+        private string GetMapName(BuildTarget target, Model.NodeData node, string outputDir) {
+            if (!string.IsNullOrEmpty (m_mapName [target])) {
                 return m_mapName [target];
             } else {
-                return Path.GetFileName(PrepareOutputDirectory (target, node, false, false)); 
+                return Path.GetFileName(outputDir) + ".xml"; 
             }
         }
 
         private string PrepareOutputDirectory(BuildTarget target, Model.NodeData node, bool autoCreate, bool throwException) {
 
-            var outputOption = (OutputOption)m_outputOption [target];
-
-            if(outputOption == OutputOption.BuildInCacheDirectory) {
-                return FileUtility.EnsureAssetBundleCacheDirExists (target, node);
-            }
-
-            var outputDir = m_outputDir [target];
-
-            outputDir = outputDir.Replace ("{Platform}", BuildTargetUtility.TargetToAssetBundlePlatformName (target));
-
-            if (throwException) {
-                if(string.IsNullOrEmpty(outputDir)) {
-                    throw new NodeException ("Output directory is empty.", 
-                        "Select valid output directory from inspector.", node);
-                }
-
-                if(target != BuildTargetUtility.GroupToTarget(BuildTargetGroup.Unknown) && 
-                    outputOption == OutputOption.ErrorIfNoOutputDirectoryFound) 
-                {
-                    if (!Directory.Exists (outputDir)) {
-                        throw new NodeException ("Output directory not found.", 
-                            "Create output directory or select other valid directory from inspector.", node);
-                    }
-                }
-            }
-
-            if (autoCreate) {
-                if(outputOption == OutputOption.DeleteAndRecreateOutputDirectory) {
-                    if (Directory.Exists(outputDir)) {
-                        FileUtility.DeleteDirectory(outputDir, true);
-                    }
-                }
-
-                if (!Directory.Exists(outputDir)) {
-                    Directory.CreateDirectory(outputDir);
-                }
-            }
-
-            return outputDir;
+            return "";
         }
-
-		// Check if given file is generated Item
-		private bool IsFileIntendedItem(string filename, Dictionary<string, List<string>> bundleVariants) {
-			filename = filename.ToLower();
-
-			int lastDotManifestIndex = filename.LastIndexOf(".manifest");
-			filename = (lastDotManifestIndex > 0)? filename.Substring(0, lastDotManifestIndex) : filename;
-
-			// test if given file is not configured as variant
-			if(bundleVariants.ContainsKey(filename)) {
-				var v = bundleVariants[filename];
-				if(v.Contains(null)) {
-					return true;
-				}
-			}
-
-			int lastDotIndex = filename.LastIndexOf('.');
-			var bundleNameFromFile  = (lastDotIndex > 0) ? filename.Substring(0, lastDotIndex): filename;
-			var variantNameFromFile = (lastDotIndex > 0) ? filename.Substring(lastDotIndex+1): null;
-
-			if(!bundleVariants.ContainsKey(bundleNameFromFile)) {
-				return false;
-			}
-
-			var variants = bundleVariants[bundleNameFromFile];
-			return variants.Contains(variantNameFromFile);
-		}
 	}
 }
-
 #endif

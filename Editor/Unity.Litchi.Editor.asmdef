@@ -2,7 +2,8 @@
     "name": "Unity.Litchi.Editor",
     "references": [
         "Unity.Litchi",
-        "Unity.AssetGraph.Editor"
+        "Unity.AssetGraph.Editor",
+        "Unity.AssetGraph"
     ],
     "includePlatforms": [
         "Editor"

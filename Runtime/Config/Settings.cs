@@ -55,6 +55,7 @@ namespace Litchi.Config
         public static void SaveToJSON(object o, string jsonPath)
         {
             string content = JsonUtility.ToJson(o);
+            FileSystem.EnsureParentDirExists(jsonPath);
             VFileSystem.WriteAllText(jsonPath, content);
         }
 

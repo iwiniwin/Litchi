@@ -5,9 +5,18 @@ using Object = UnityEngine.Object;
 
 namespace Litchi.AssetManage
 {
-    public class AssetRequest : YieldInstruction
+    public class AssetRequest : CustomYieldInstruction
     {
+        public override bool keepWaiting 
+        { 
+            get
+            {
+                return !m_IsDone;
+            }
+        }
+
         private bool m_IsDone;
+
         public bool isDone { 
             get
             {

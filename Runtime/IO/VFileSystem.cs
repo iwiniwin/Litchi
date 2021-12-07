@@ -6,17 +6,17 @@ namespace Litchi.IO
     {
         public static bool Exists(string path)
         {
-            return false;
+            return File.Exists(path);
         }
 
         public static string ReadAllText(string path)
         {
-            return "";
+            return File.ReadAllText(path);
         }
 
         public static void WriteAllText(string path, string contents)
         {
-            
+            File.WriteAllText(path, contents);
         }
     }
 }
