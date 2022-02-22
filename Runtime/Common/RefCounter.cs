@@ -12,12 +12,21 @@ namespace Litchi
         public int refCount {get; protected set;}
         public void Retain()
         {
-            refCount ++;
+            ++ refCount;
         }
 
         public void Release()
         {
-            refCount --;
+            -- refCount;
+            if(refCount == 0)
+            {
+                OnZeroRef();
+            }
+        }
+
+        protected virtual void OnZeroRef()
+        {
+
         }
     }
 }

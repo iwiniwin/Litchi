@@ -11,6 +11,7 @@ using V1=AssetBundleGraph;
 using Model=UnityEngine.AssetGraph.DataModel.Version2;
 using UnityEngine;
 using UnityEngine.AssetGraph;
+using FileUtil = UnityEngine.AssetGraph.FileUtility;
 
 namespace Litchi {
 
@@ -114,7 +115,7 @@ namespace Litchi {
 
 				var bundleOutputDir = GetOutputDirectory(ag.assetGroups[key]);
 				var mapName = GetMapName(target, node, bundleOutputDir);
-				var outputPath = FileUtility.PathCombine(bundleOutputDir, mapName);
+				var outputPath = FileUtil.PathCombine(bundleOutputDir, mapName);
 				output[key].Add(AssetReferenceDatabase.GetReferenceWithType(outputPath, typeof(TextAsset)));
 
 				Output(dst, output);
