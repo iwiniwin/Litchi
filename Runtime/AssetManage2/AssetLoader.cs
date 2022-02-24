@@ -37,7 +37,7 @@ namespace Litchi.AssetManage2
             Add2Load(key);
             LoadSync();
 
-            var asset = AssetManager.instance.GetAsset(key, false);
+            var asset = AssetManager.instance.GetAsset(key);
             if(asset == null)
             {
 
@@ -83,7 +83,7 @@ namespace Litchi.AssetManage2
                 return;
             }
 
-            asset = AssetManager.instance.GetAsset(key, true);
+            asset = AssetManager.instance.GetOrCreateAsset(key);
 
             if(asset == null)
             {

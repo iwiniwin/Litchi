@@ -47,29 +47,47 @@ namespace Litchi.AssetManage2
             }
         }
 
-        // private AssetTable m_Table = new AssetTable();
-        // marktodo
-        private Dictionary<string, IAsset> m_Table = new Dictionary<string, IAsset>();
+        private Dictionary<string, List<IAsset>> m_Table = new Dictionary<string, List<IAsset>>();
 
-        public IAsset GetAsset(AssetSearchKey key, bool createNew = false)
+        public IAsset GetOrCreateAsset(AssetSearchKey key)
         {
-            // var asset = m_Table.GetAssetBySearchKey(key);
-            IAsset asset;
-            m_Table.TryGetValue(key.ToString(), out asset);
+            IAsset asset = GetAsset(key);
             if(asset != null) return asset;
-
-            if(!createNew)
-            {
-                return null;
-            }
 
             asset = AssetFactory.Create(key);
             if(asset != null)
             {
-                // m_Table.Add(asset);
-                m_Table.Add(key.ToString(), asset);
+                var name = key.assetName;
+                if(m_Table.ContainsKey(name))
+                {
+                    m_Table[name].Add(asset);
+                }
+                else
+                {
+                    var list = new List<IAsset>();
+                    list.Add(asset);
+                    m_Table.Add(name, list);
+                }
             }
             return asset;
+        }
+
+        public IAsset GetAsset(AssetSearchKey key)
+        {
+            List<IAsset> assets;
+            if(m_Table.TryGetValue(key.assetName, out assets))
+            {
+                if(key.assetType != null)
+                {
+                    assets = assets.Where(asset => asset.assetType == key.assetType).ToList();
+                }
+                if(key.assetBundleName != null)
+                {
+                    assets = assets.Where(asset => asset.assetBundleName == key.assetBundleName).ToList();
+                }
+                return assets.FirstOrDefault();
+            }
+            return null;
         }
     }
 }
