@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 
 namespace Litchi.AssetManage2
 {
@@ -172,6 +173,12 @@ namespace Litchi.AssetManage2
                 return;
             }
             ReleaseAsset();
+        }
+
+        public virtual IEnumerator DoAsync(Action onFinish)
+        {
+            onFinish();
+            yield break;
         }
 
         public virtual void Recycle()

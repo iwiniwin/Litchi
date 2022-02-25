@@ -7,8 +7,8 @@ namespace Litchi.AssetManage2
 {
     public interface IAssetLoader
     {
-        // void Add2Load(string assetName, Action<bool, IAsset> listener, bool lastOrder = true);
-        // void Add2Load(string assetName, string assetBundleName, Action<bool, IAsset> listener, bool lastOrder = true);
+        void Add2Load(string assetName, Action<bool, IAsset> listener, bool lastOrder = true);
+        void Add2Load(string assetName, string assetBundleName, Action<bool, IAsset> listener, bool lastOrder = true);
         void ReleaseAllAssets();
         // void UnloadAllInstantiateAssets();
     }
@@ -64,11 +64,35 @@ namespace Litchi.AssetManage2
             }
         }
 
-        List<string> tempDependencies = new List<string>();
+        private Action m_Listener;
+        public void LoadAsync(Action listener)
+        {
+            m_Listener = listener;
+            DoLoadAsync();
+            m_TempDependencies.Clear();
+        }
+
+        List<string> m_TempDependencies = new List<string>();
         private readonly List<IAsset> m_AssetList = new List<IAsset>();
+        // 待加载的资源列表
         private readonly LinkedList<IAsset> m_WaitLoadList = new LinkedList<IAsset>();
 
+        // 待加载以及正在加载的资源数量
         private int m_LoadingCount;
+
+        public void Add2Load(string assetName, Action<bool, IAsset> listener = null, bool lastOrder = true)
+        {
+            var key = AssetSearchKey.Allocate(assetName);
+            Add2Load(key, listener, lastOrder);
+            key.Recycle();
+        }
+
+        public void Add2Load(string assetName, string assetBundleName, Action<bool, IAsset> listener = null, bool lastOrder = true)
+        {
+            var key = AssetSearchKey.Allocate(assetName, assetBundleName);
+            Add2Load(key, listener, lastOrder);
+            key.Recycle();
+        }
 
         private void Add2Load(AssetSearchKey key, Action<bool, IAsset> listener = null, bool lastOrder = true)
         {
@@ -78,7 +102,7 @@ namespace Litchi.AssetManage2
                 if(listener != null)
                 {
                     // marktodo
-                    // asset.
+                    asset.AddLoadDoneListener(listener);
                 }
                 return;
             }
@@ -92,7 +116,8 @@ namespace Litchi.AssetManage2
 
             if(listener != null)
             {
-
+                // marktodo
+                asset.AddLoadDoneListener(listener);
             }
 
             var dependencies = asset.GetDependencies();
@@ -100,10 +125,10 @@ namespace Litchi.AssetManage2
             {
                 foreach (var item in dependencies)
                 {
-                    if(!tempDependencies.Contains(item))
+                    if(!m_TempDependencies.Contains(item))
                     {
                         var searchKey = AssetSearchKey.Allocate(item, null, typeof(AssetBundle));
-                        tempDependencies.Add(item);
+                        m_TempDependencies.Add(item);
                         Add2Load(searchKey);
                         searchKey.Recycle();
                     }
@@ -126,7 +151,6 @@ namespace Litchi.AssetManage2
 
             asset.Retain();
             m_AssetList.Add(asset);
-
             if(asset.state != AssetState.Ready)
             {
                 ++ m_LoadingCount;
@@ -154,9 +178,58 @@ namespace Litchi.AssetManage2
             return null;
         }
 
+        private void DoLoadAsync()
+        {
+            if(m_LoadingCount == 0)
+            {
+                if(m_Listener != null)
+                {
+                    var callback = m_Listener;
+                    m_Listener = null;
+                    callback();
+                }
+                return;
+            }
+
+            var nextNode = m_WaitLoadList.First;
+            LinkedListNode<IAsset> currentNode = null;
+            while(nextNode != null)
+            {
+                currentNode = nextNode;
+                var asset = currentNode.Value;
+                nextNode = currentNode.Next;
+                if(asset.CheckDependenciesLoadDone())
+                {
+                    m_WaitLoadList.Remove(currentNode);
+                    if(asset.state != AssetState.Ready)
+                    {
+                        asset.AddLoadDoneListener(OnAssetLoadDone);
+                        asset.LoadAsync();
+                    }
+                    else
+                    {
+                        -- m_LoadingCount;
+                    }
+                }
+            }
+        }
+
+        private void OnAssetLoadDone(bool result, IAsset asset)
+        {
+            -- m_LoadingCount;
+            DoLoadAsync();  // 加载下一个资源
+            if(m_LoadingCount == 0)
+            {
+                if(m_Listener != null)
+                {
+                    m_Listener();
+                }
+            }
+        }
+
         public void ReleaseAllAssets()
         {
-
+            
         }
 
         #region IPoolable

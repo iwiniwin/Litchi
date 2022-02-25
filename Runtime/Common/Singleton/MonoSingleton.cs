@@ -4,7 +4,34 @@ namespace Litchi
 {
     public abstract class MonoSingleton<T> : MonoBehaviour, ISingleton where T : MonoSingleton<T>
     {
-        protected static T m_Instance;
+        public static T instance
+        {
+            get
+            {
+                return MonoSingletonProperty<T>.instance;
+            }
+        }
+
+        public virtual void Dispose()
+        {
+            MonoSingletonProperty<T>.Dispose(true);
+        }
+
+        protected virtual void OnDestroy()
+        {
+            // 仅释放引用
+            MonoSingletonProperty<T>.Dispose(false);
+        }
+
+        public virtual void OnSingletonInit()
+        {
+
+        }
+    }
+
+    public static class MonoSingletonProperty<T> where T : MonoBehaviour, ISingleton
+    {
+        private static T m_Instance;
 
         public static T instance
         {
@@ -29,19 +56,13 @@ namespace Litchi
             }
         }
 
-        public virtual void Dispose()
+        public static void Dispose(bool destroy = true)
         {
-            Destroy(gameObject);
-        }
-
-        protected virtual void OnDestroy()
-        {
+            if(destroy && m_Instance != null)
+            {
+                Object.Destroy(m_Instance.gameObject);
+            }
             m_Instance = null;
-        }
-
-        public virtual void OnSingletonInit()
-        {
-
         }
     }
 }

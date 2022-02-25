@@ -1,4 +1,6 @@
 using UnityEngine;
+using System;
+using System.Collections;
 
 namespace Litchi.AssetManage2
 {
@@ -32,7 +34,15 @@ namespace Litchi.AssetManage2
             }
             state = AssetState.Loading;
 
-            asset = Resources.Load(m_Path, assetType);
+            // 不能直接使用Resources.Load(m_Path, assetType)代替，assetType禁止传入null，会报错ArgumentNullException: Value cannot be null.
+            if(assetType != null)
+            {
+                asset = Resources.Load(m_Path, assetType);
+            }
+            else
+            {
+                asset = Resources.Load(m_Path);
+            }
 
             if(asset == null)
             {
@@ -56,7 +66,43 @@ namespace Litchi.AssetManage2
                 return;
             }
             state = AssetState.Loading;
-            // pushLoadTask  // marktodo
+            
+            LoadTaskManager.instance.PushTask(this);
+            LoadTaskManager.instance.StartNextTask();
+        }
+
+        public override IEnumerator DoAsync(Action onFinish)
+        {
+            if(refCount <= 0)
+            {
+                OnLoadFailed();
+                onFinish();
+                yield break;
+            }
+            ResourceRequest resourceRequest = null;
+            // 不能直接使用Resources.LoadAsync(m_Path, assetType)代替，assetType禁止传入null，会报错ArgumentNullException: Value cannot be null.
+            if(assetType != null)
+            {
+                resourceRequest = Resources.LoadAsync(m_Path, assetType);
+            }
+            else
+            {
+                resourceRequest = Resources.LoadAsync(m_Path);
+            }
+            m_ResourceRequest = resourceRequest;
+            yield return resourceRequest;
+            m_ResourceRequest = null;
+            
+            if(!resourceRequest.isDone)
+            {
+                Logger.LogError(string.Format("[ResourceAsset] Failed to Load Asset<{0}> From Resources : {1}", assetType.FullName, m_Path));
+                OnLoadFailed();
+                onFinish();
+                yield break;
+            }
+            asset = resourceRequest.asset;
+            state = AssetState.Ready;
+            onFinish();
         }
 
         // marktodo 这个方法是否应该是自己的

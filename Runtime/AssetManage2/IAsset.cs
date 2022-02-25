@@ -9,7 +9,7 @@ namespace Litchi.AssetManage2
         Ready = 2
     }
 
-    public interface IAsset : IRefCounter
+    public interface IAsset : IRefCounter, IEnumeratorTask
     {
         string assetName { get; }
         string assetBundleName { get; }
