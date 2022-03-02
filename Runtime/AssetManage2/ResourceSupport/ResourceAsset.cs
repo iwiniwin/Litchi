@@ -113,7 +113,8 @@ namespace Litchi.AssetManage2
 
         protected override float CalculateProgress()
         {
-            return 1;  // marktodo
+            if(m_ResourceRequest == null) return 0;
+            return m_ResourceRequest.progress;
         }
     }
 }

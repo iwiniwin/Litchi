@@ -14,5 +14,21 @@ namespace Litchi.AssetManage2
         {
 
         }
+
+        // marktodo
+        public static string GetPlatformName()
+        {
+            // return GetPlatformName
+            return "Windows";
+        }
+
+        // marktodo
+        public static string StreamingAssetsPath
+        {
+            get
+            {
+                return Application.streamingAssetsPath + "/";
+            }
+        }
     }
 }

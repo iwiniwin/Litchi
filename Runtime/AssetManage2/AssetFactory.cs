@@ -10,7 +10,8 @@ namespace Litchi.AssetManage2
     {
         public static IAsset Create(AssetSearchKey key)
         {
-            return new ResourceAssetCreator().Create(key);
+            // return new ResourceAssetCreator().Create(key);
+            return new AssetBundleAssetCreator().Create(key);
         }
     }
 }

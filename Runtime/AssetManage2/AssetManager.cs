@@ -89,6 +89,11 @@ namespace Litchi.AssetManage2
             }
             return null;
         }
+
+        public T GetAsset<T>(AssetSearchKey key) where T : class, IAsset
+        {
+            return GetAsset(key) as T;
+        }
     }
 
     // todomark 优化  不要直接用IEnumeratorTask

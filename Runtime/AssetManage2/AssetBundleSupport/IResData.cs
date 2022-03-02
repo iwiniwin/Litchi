@@ -12,7 +12,7 @@ namespace Litchi.AssetManage2
 
         IEnumerator LoadFromFileAsync(string outRes);
 
-        AssetData GetAssetData();
+        AssetData GetAssetData(AssetSearchKey key);
 
         int AddAssetBundleName(string abName, string[] depends);
     }

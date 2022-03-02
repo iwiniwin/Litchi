@@ -9,6 +9,16 @@ namespace Litchi.AssetManage2
         Ready = 2
     }
 
+    public enum AssetLoadType : short
+    {
+        AssetBundle = 0,
+        AssetBundleAsset,
+        AssetBundleScene,
+        Internal,
+        NetImageAsset,
+        LocalImageAsset,
+    }
+
     public interface IAsset : IRefCounter, IEnumeratorTask
     {
         string assetName { get; }

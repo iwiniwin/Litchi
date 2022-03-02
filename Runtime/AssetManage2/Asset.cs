@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using UnityEngine;
 
 namespace Litchi.AssetManage2
 {
@@ -97,14 +98,44 @@ namespace Litchi.AssetManage2
             return state == AssetState.Waiting;
         }
 
-        protected void HoldDependAsset()
+        protected void RetainDependentAssets()
         {
+            var dependencies = GetDependencies();
+            if(dependencies == null || dependencies.Length == 0)
+            {
+                return;
+            }
+            for (int i = dependencies.Length - 1; i >= 0 ; i--)
+            {
+                var key = AssetSearchKey.Allocate(dependencies[i], null, typeof(AssetBundle));
+                var asset = AssetManager.instance.GetAsset(key);
+                key.Recycle();
 
+                if(asset != null)
+                {
+                    asset.Retain();
+                }
+            }
         }
 
-        protected void UnHoldDependAsset()
+        protected void ReleaseDependentAssets()
         {
+            var dependencies = GetDependencies();
+            if(dependencies == null || dependencies.Length == 0)
+            {
+                return;
+            }
+            for (int i = dependencies.Length - 1; i >= 0 ; i--)
+            {
+                var key = AssetSearchKey.Allocate(dependencies[i], null, typeof(AssetBundle));
+                var asset = AssetManager.instance.GetAsset(key);
+                key.Recycle();
 
+                if(asset != null)
+                {
+                    asset.Release();
+                }
+            }
         }
 
         public virtual bool UnloadImage(bool flag)
