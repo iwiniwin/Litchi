@@ -14,6 +14,6 @@ namespace Litchi.AssetManage2
 
         AssetData GetAssetData(AssetSearchKey key);
 
-        int AddAssetBundleName(string abName, string[] depends);
+        int AddAssetBundleName(string abName, string[] depends, out AssetDataGroup group);
     }
 }

@@ -9,6 +9,7 @@ namespace Litchi.AssetManage2
     {
         protected string[] m_AssetBundleArray;
         protected AssetBundleRequest m_AssetBundleRequest;
+        private string m_PassInAssetBundleName;
 
         // marktodo
         public static AssetBundleAsset Allocate(string name, string assetBundleName, Type assetType)
@@ -17,7 +18,7 @@ namespace Litchi.AssetManage2
             if(asset != null)
             {
                 asset.assetName = name;
-                asset.assetBundleName = assetBundleName;
+                asset.m_PassInAssetBundleName = assetBundleName;
                 asset.assetType = assetType;
                 asset.InitAssetBundleName();
             }
@@ -53,10 +54,9 @@ namespace Litchi.AssetManage2
             }
             else
             {
-                var key = AssetSearchKey.Allocate(null, assetBundleName, typeof(AssetBundle));
+                var key = AssetSearchKey.Allocate(assetBundleName, null, typeof(AssetBundle));
                 var bundleLoader = AssetManager.instance.GetAsset<AssetBundleLoader>(key);
                 key.Recycle();
-
                 if(bundleLoader == null || !bundleLoader.assetBundle)
                 {
                     Logger.LogError(string.Format("[AssetBundleAsset] Failed to Load Asset<{0}> : {1}, Not Find AssetBundle : {2}", assetType.FullName, assetName, assetBundleName));
@@ -69,7 +69,9 @@ namespace Litchi.AssetManage2
 
                 if(assetType != null)
                 {
+                    UnityEngine.Debug.Log("[Lei] aaaaaa" + " " + assetName + "   " + assetType);
                     obj = bundleLoader.assetBundle.LoadAsset(assetName, assetType);
+                    UnityEngine.Debug.Log("[Lei] obj" + " " + obj);
                 }
                 else
                 {
@@ -158,25 +160,29 @@ namespace Litchi.AssetManage2
         protected void InitAssetBundleName()
         {
             m_AssetBundleArray = null;
-
-            var key = AssetSearchKey.Allocate(assetName, assetBundleName, assetType);
+            var key = AssetSearchKey.Allocate(assetName, m_PassInAssetBundleName, assetType);
             var config = AssetBundleSettings.AssetBundleConfigFile.GetAssetData(key);
             key.Recycle();
-
             if(config == null)
             {
                 Logger.LogError(string.Format("[AssetBundleAsset] Not Find AssetData For Asset : {0}", assetName));
                 return;
             }
 
-            // var name = config.assetBundleName;
-            // if(string.IsNullOrEmpty(name))
-            // {
-            //     Logger.LogError(string.Format("[AssetBundleAsset] Not Find AssetData In Config({0}) : {1}", config.assetBundleIndex, assetName));
-            //     return;
-            // }
+            var name = config.assetBundleName;
+            if(string.IsNullOrEmpty(name))
+            {
+                Logger.LogError(string.Format("[AssetBundleAsset] Not Find AssetData In Config({0}) : {1}", config.assetBundleIndex, m_PassInAssetBundleName));
+                return;
+            }
 
-            // m_AssetBundleArray = new string[]{assetBunnamedleName};
+            m_AssetBundleArray = new string[]{name};
+            assetBundleName = name;
+        }
+
+        public override string[] GetDependencies()
+        {
+            return m_AssetBundleArray;
         }
     }
 }

@@ -12,6 +12,8 @@ namespace Litchi.AssetManage2
         {
             // return new ResourceAssetCreator().Create(key);
             return new AssetBundleAssetCreator().Create(key);
+
+            // marktodo AssetBundleLoaderFactor
         }
     }
 }

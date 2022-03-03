@@ -14,14 +14,16 @@ namespace Litchi.AssetManage2
             m_Inited = true;
 
             ObjectPool<ResourceAsset>.instance.Init(40, 20);
+
+            InitAssetBundleConfig();
         }
 
         public void InitAssetBundleConfig()
         {
-            var simulate = false;
+            var simulate = true;
             if(simulate)
             {
-
+                AssetBundleSettings.AssetBundleConfigFile = ConfigFileUtility.BuildEditorDataTable();
             }
             else
             {
