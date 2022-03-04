@@ -31,32 +31,45 @@ namespace Litchi.AssetManage2
             {
                 return false;
             }
+            
             if(string.IsNullOrEmpty(assetBundleName))
             {
                 return false;
             }
 
             Object obj = null;
-            bool simulate = false;
+            bool simulate = true;
+            
+            var key = AssetSearchKey.Allocate(assetBundleName, null, typeof(AssetBundle));
+            var bundleLoader = AssetManager.instance.GetAsset<AssetBundleLoader>(key);
+            key.Recycle();
+
             if(simulate && !string.Equals(assetName, "assetbundlemanifest"))  // marktodo 大小写
             {
-                // var key = AssetSearchKey.Allocate(null, assetBundleName, typeof(AssetBundle));
-                // var bundleLoader = AssetManager.instance.GetAsset<AssetBundleLoader>(key);
-                // key.Recycle();
+                var assetPaths = AssetBundlePathHelper.GetAssetPaths(bundleLoader.assetName, assetName);
+                if(assetPaths.Length == 0)
+                {
+                    Logger.LogError(string.Format("[AssetBundleAsset] Failed to Load Asset<{0}> : {1}", assetType.FullName, assetName));
+                    OnLoadFailed();
+                    return false;
+                }
 
-                // var assetPaths = AssetBundlePathHelper.GetAssetPaths(bundleLoader.assetName, assetName);
-                // if(assetPaths.Length == 0)
-                // {
-                //     Logger.LogError(string.Format("[AssetBundleAsset] Failed to Load Asset<{0}> : {1}", assetType.FullName, assetName));
-                //     OnLoadFailed();
-                //     return false;
-                // }
+                RetainDependentAssets();
+
+                state = AssetState.Loading;
+
+                if(assetType != null)
+                {
+                    obj = AssetBundlePathHelper.LoadAssetAtPath(assetPaths[0], assetType);
+                }
+                else
+                {
+                    obj = AssetBundlePathHelper.LoadAssetAtPath<Object>(assetPaths[0]);
+                }
+
             }
             else
             {
-                var key = AssetSearchKey.Allocate(assetBundleName, null, typeof(AssetBundle));
-                var bundleLoader = AssetManager.instance.GetAsset<AssetBundleLoader>(key);
-                key.Recycle();
                 if(bundleLoader == null || !bundleLoader.assetBundle)
                 {
                     Logger.LogError(string.Format("[AssetBundleAsset] Failed to Load Asset<{0}> : {1}, Not Find AssetBundle : {2}", assetType.FullName, assetName, assetBundleName));
@@ -69,9 +82,7 @@ namespace Litchi.AssetManage2
 
                 if(assetType != null)
                 {
-                    UnityEngine.Debug.Log("[Lei] aaaaaa" + " " + assetName + "   " + assetType);
                     obj = bundleLoader.assetBundle.LoadAsset(assetName, assetType);
-                    UnityEngine.Debug.Log("[Lei] obj" + " " + obj);
                 }
                 else
                 {

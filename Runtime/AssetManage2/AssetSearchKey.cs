@@ -24,7 +24,21 @@ namespace Litchi.AssetManage2
 
         public bool Match(IAsset asset)
         {
-            return true;
+            if(asset.assetName == assetName)
+            {
+                var isMatch = true;
+                if(assetType != null)
+                {
+                    isMatch = asset.assetType == assetType;
+                }
+
+                if(assetBundleName != null)
+                {
+                    isMatch = isMatch && asset.assetBundleName == assetBundleName;
+                }
+                return isMatch;
+            }
+            return false;
         }
 
         public override string ToString()

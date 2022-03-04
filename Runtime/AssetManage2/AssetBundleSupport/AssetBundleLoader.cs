@@ -38,7 +38,7 @@ namespace Litchi.AssetManage2
             }
             state = AssetState.Loading;
 
-            var simulate = false;
+            var simulate = true;
             if(simulate)
             {
 

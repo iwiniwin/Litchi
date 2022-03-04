@@ -4,7 +4,16 @@ namespace Litchi.AssetManage2
     {
         public bool Match(AssetSearchKey key)
         {
-            return true;
+            var assetData = AssetBundleSettings.AssetBundleConfigFile.GetAssetData(key);
+            if(assetData != null)
+            {
+                return assetData.assetType == (short)AssetLoadType.AssetBundleAsset;
+            }
+            // foreach (var subFile in AssetBundleSettings.sub)
+            // {
+                
+            // }
+            return false;
         }
 
         public IAsset Create(AssetSearchKey key)
