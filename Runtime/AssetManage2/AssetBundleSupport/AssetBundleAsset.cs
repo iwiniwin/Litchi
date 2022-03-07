@@ -73,6 +73,7 @@ namespace Litchi.AssetManage2
                 if(bundleLoader == null || !bundleLoader.assetBundle)
                 {
                     Logger.LogError(string.Format("[AssetBundleAsset] Failed to Load Asset<{0}> : {1}, Not Find AssetBundle : {2}", assetType.FullName, assetName, assetBundleName));
+                    // markdown 不调用OnLoadFailed？
                     return false;
                 }
 
@@ -88,8 +89,6 @@ namespace Litchi.AssetManage2
                 {
                     obj = bundleLoader.assetBundle.LoadAsset(assetName);
                 }
-
-                // if(bundleLoader == null || !bundleLoader.assetbund)
             }
 
             ReleaseDependentAssets();
@@ -118,43 +117,93 @@ namespace Litchi.AssetManage2
             }
             state = AssetState.Loading;
             
-            LoadTaskManager.instance.PushTask(this);
-            LoadTaskManager.instance.StartNextTask();
+            LoadTaskManager.instance.StartTask(this);
         }
 
-        public override IEnumerator DoAsync(Action onFinish)
+        public override IEnumerator OnExecute()
         {
-            // if(refCount <= 0)
-            // {
-            //     OnLoadFailed();
-            //     onFinish();
-            //     yield break;
-            // }
-            // ResourceRequest resourceRequest = null;
-            // // 不能直接使用Resources.LoadAsync(m_Path, assetType)代替，assetType禁止传入null，会报错ArgumentNullException: Value cannot be null.
-            // if(assetType != null)
-            // {
-            //     resourceRequest = Resources.LoadAsync(m_Path, assetType);
-            // }
-            // else
-            // {
-            //     resourceRequest = Resources.LoadAsync(m_Path);
-            // }
-            // m_ResourceRequest = resourceRequest;
-            // yield return resourceRequest;
-            // m_ResourceRequest = null;
+            if(refCount <= 0)
+            {
+                OnLoadFailed();
+                yield break;
+            }
             
-            // if(!resourceRequest.isDone)
-            // {
-            //     Logger.LogError(string.Format("[AssetBundleAsset] Failed to Load Asset<{0}> From Resources : {1}", assetType.FullName, m_Path));
-            //     OnLoadFailed();
-            //     onFinish();
-            //     yield break;
-            // }
-            // asset = resourceRequest.asset;
-            // state = AssetState.Ready;
-            // onFinish();
-            yield break;
+            var key = AssetSearchKey.Allocate(assetBundleName, null, typeof(AssetBundle));
+            var bundleLoader = AssetManager.instance.GetAsset<AssetBundleLoader>(key);
+            key.Recycle();
+
+            bool simulate = true;
+            if(simulate && !string.Equals(assetName, "assetbundlemanifest"))  // marktodo 大小写
+            {
+                var assetPaths = AssetBundlePathHelper.GetAssetPaths(bundleLoader.assetName, assetName);
+                if(assetPaths.Length == 0)
+                {
+                    Logger.LogError(string.Format("[AssetBundleAsset] Failed to Load Asset<{0}> : {1}", assetType.FullName, assetName));
+                    OnLoadFailed();
+                    yield break;
+                }
+
+                // 确保加载过程中依赖资源不被释放，目前只有AssetBundleAsset需要处理该情况
+                RetainDependentAssets();
+
+                state = AssetState.Loading;
+
+                // 模拟异步 等一帧
+                yield return new WaitForEndOfFrame();
+
+                ReleaseDependentAssets();
+
+                if(assetType != null)
+                {
+                    asset = AssetBundlePathHelper.LoadAssetAtPath(assetPaths[0], assetType);
+                }
+                else
+                {
+                    asset = AssetBundlePathHelper.LoadAssetAtPath<Object>(assetPaths[0]);
+                }
+
+            }
+            else
+            {
+                if(bundleLoader == null || !bundleLoader.assetBundle)
+                {
+                    Logger.LogError(string.Format("[AssetBundleAsset] Failed to Load Asset<{0}> : {1}, Not Find AssetBundle : {2}", assetType.FullName, assetName, assetBundleName));
+                    OnLoadFailed();
+                    yield break;
+                }
+
+                RetainDependentAssets();
+
+                state = AssetState.Loading;
+
+                AssetBundleRequest request = null;
+
+                if(assetType != null)
+                {
+                    request = bundleLoader.assetBundle.LoadAssetAsync(assetName, assetType);
+                }
+                else
+                {
+                    request = bundleLoader.assetBundle.LoadAssetAsync(assetName);
+                }
+
+                m_AssetBundleRequest = request;
+                yield return request;
+                m_AssetBundleRequest = null;
+
+                ReleaseDependentAssets();
+
+                if(!request.isDone)
+                {
+                    Logger.LogError(string.Format("[AssetBundleAsset] Failed to Load Asset<{0}> : {1}", assetType.FullName, assetName));
+                    OnLoadFailed();
+                    yield break;
+                }
+
+                asset = request.asset;
+            }
+
+            state = AssetState.Ready;
         }
 
         // marktodo 这个方法是否应该是自己的

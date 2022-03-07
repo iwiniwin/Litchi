@@ -19,7 +19,7 @@ namespace Litchi.AssetManage2
         LocalImageAsset,
     }
 
-    public interface IAsset : IRefCounter, IEnumeratorTask
+    public interface IAsset : IRefCounter, IExecuteTask
     {
         string assetName { get; }
         string assetBundleName { get; }

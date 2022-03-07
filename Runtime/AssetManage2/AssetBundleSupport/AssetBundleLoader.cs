@@ -64,53 +64,59 @@ namespace Litchi.AssetManage2
 
         public override void LoadAsync()
         {
-            // if(!CanLoad())
-            // {
-            //     return;
-            // }
+            if(!CanLoad())
+            {
+                return;
+            }
             // if(string.IsNullOrEmpty(assetName))
             // {
             //     return;
             // }
-            // state = AssetState.Loading;
+            state = AssetState.Loading;
             
-            // LoadTaskManager.instance.PushTask(this);
-            // LoadTaskManager.instance.StartNextTask();
+            LoadTaskManager.instance.StartTask(this);
         }
 
-        public override IEnumerator DoAsync(Action onFinish)
+        public override IEnumerator OnExecute()
         {
-            // if(refCount <= 0)
-            // {
-            //     OnLoadFailed();
-            //     onFinish();
-            //     yield break;
-            // }
-            // ResourceRequest resourceRequest = null;
-            // // 不能直接使用Resources.LoadAsync(m_Path, assetType)代替，assetType禁止传入null，会报错ArgumentNullException: Value cannot be null.
-            // if(assetType != null)
-            // {
-            //     resourceRequest = Resources.LoadAsync(m_Path, assetType);
-            // }
-            // else
-            // {
-            //     resourceRequest = Resources.LoadAsync(m_Path);
-            // }
-            // m_ResourceRequest = resourceRequest;
-            // yield return resourceRequest;
-            // m_ResourceRequest = null;
+            if(refCount <= 0)
+            {
+                OnLoadFailed();
+                yield break;
+            }
+            var simulate = true;
+            if(simulate)
+            {
+                yield return null;
+            }
+            else
+            {
+                var url = AssetBundleSettings.GetAssetBundlePath(assetName);
+                // marktodo
+                var isWebGL = false;
+                if(isWebGL)
+                {
+
+                }
+                else
+                {
+                    var request = AssetBundle.LoadFromFileAsync(url);
+
+                    m_AssetBundleCreateRequest = request;
+                    yield return request;
+                    m_AssetBundleCreateRequest = null;
+
+                    if(!request.isDone)
+                    {
+                        Logger.LogError(string.Format("[AssetBundleLoader] Failed to Load Asset<{0}> : {1}", assetType.FullName, assetName));
+                        OnLoadFailed();
+                        yield break;
+                    }
+                    assetBundle = request.assetBundle;
+                }
+            }
             
-            // if(!resourceRequest.isDone)
-            // {
-            //     Logger.LogError(string.Format("[AssetBundleLoader] Failed to Load Asset<{0}> From Resources : {1}", assetType.FullName, m_Path));
-            //     OnLoadFailed();
-            //     onFinish();
-            //     yield break;
-            // }
-            // asset = resourceRequest.asset;
-            // state = AssetState.Ready;
-            // onFinish();
-            yield break;
+            state = AssetState.Ready;
         }
 
         // marktodo 这个方法是否应该是自己的

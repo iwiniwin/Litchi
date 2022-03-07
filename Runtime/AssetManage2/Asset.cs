@@ -167,9 +167,16 @@ namespace Litchi.AssetManage2
             }
             for (int i = dependencies.Length - 1; i >= 0 ; i--)
             {
-                // var 
+                var key = AssetSearchKey.Allocate(dependencies[i]);
+                var asset = AssetManager.instance.GetAsset(key);
+                key.Recycle();
+
+                if(asset == null || asset.state != AssetState.Ready)
+                {
+                    return false;
+                }
             }
-            return false;
+            return true;
         }
 
         public bool ReleaseAsset()
@@ -206,10 +213,19 @@ namespace Litchi.AssetManage2
             ReleaseAsset();
         }
 
-        public virtual IEnumerator DoAsync(Action onFinish)
+        public virtual IEnumerator OnExecute()
         {
-            onFinish();
             yield break;
+        }
+
+        public virtual void OnStart()
+        {
+
+        }
+
+        public virtual void OnShutdown()
+        {
+
         }
 
         public virtual void Recycle()

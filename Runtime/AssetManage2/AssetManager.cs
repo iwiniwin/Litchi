@@ -99,14 +99,8 @@ namespace Litchi.AssetManage2
     }
 
     // todomark 优化  不要直接用IEnumeratorTask
-    public class LoadTaskManager : TaskManager<IEnumeratorTask>, ISingleton
+    public class LoadTaskManager : TaskManager<LoadTaskManager>
     {
-        public static new LoadTaskManager instance
-        {
-            get
-            {
-                return MonoSingletonProperty<LoadTaskManager>.instance;
-            }
-        }
+        
     }
 }

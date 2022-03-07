@@ -1,52 +1,114 @@
 using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace Litchi
 {
-    public class TaskManager<T> : MonoSingleton<TaskManager<T>> where T : IEnumeratorTask
+    public class TaskManager<T> : MonoSingleton<T> where T : TaskManager<T>
     {   
-        // 由继承的子类实现instance
-        // TaskManager<T>是泛型，MonoBehaviours不支持，无法用于AddComponent
-        public static new TaskManager<T> instance
+        private static int m_MaxProcessTaskCount = 8;  // 最快协程大概在6到8之间 
+        private Queue<ITask> m_ToDoTaskQueue = new Queue<ITask>();
+        private ITask[] m_ProcessTasks = new ITask[m_MaxProcessTaskCount];
+
+        public void StartTask(ITask task)
         {
-            get
+            m_ToDoTaskQueue.Enqueue(task);
+        }
+
+        // public void ExecuteTask(IExecuteTask task)
+        // {
+        //     int index = FindEmptyIndex();
+        //     if(index == -1) 
+        //     {
+        //         m_ToDoTaskQueue.Enqueue(task);
+        //     }
+        //     else
+        //     {
+        //         task.OnStart();
+        //         yield return task.OnExecute();
+        //         // ExecuteTask(i, task);
+        //     }
+        // }
+
+        // public TaskHandlervv Ufff()
+        // {
+
+        // }
+
+        // private int FindEmptyIndex()
+        // {
+        //     for (int i = 0; i < m_ProcessTasks.Length; i++)
+        //     {
+        //         if(m_ProcessTasks[i] == null)
+        //         {
+        //             return i;
+        //         }
+        //     }
+        //     return -1;
+        // }
+
+        private void TryStartTask(int index)
+        {
+            if(m_ToDoTaskQueue.Count > 0)
             {
-                UnityEngine.Debug.LogError("error");
-                return null;
+                var task = m_ToDoTaskQueue.Dequeue();
+                if(task is IUpdateTask)
+                {
+                    StartTask(task as IUpdateTask);
+                }
+                else if(task is IExecuteTask)
+                {
+                    StartTask(index, task as IExecuteTask);
+                }
             }
         }
 
-        private LinkedList<T> m_TaskList = new LinkedList<T>();
-
-        private int m_MaxCoroutineCount = 8;  // 最快协程大概在6到8之间
-        private int m_CurrentCoroutineCount;
-
-        public void PushTask(T task)
+        private void StartTask(int index, IUpdateTask task)
         {
-            if(task == null) return;
-            m_TaskList.AddLast(task);
+            m_ProcessTasks[index] = task;
+            task.OnStart();
         }
 
-        public void StartNextTask()
+        private void StartTask(int index, IExecuteTask task)
         {
-            if(m_TaskList.Count == 0)
-            {
-                return;
-            }
-            if(m_CurrentCoroutineCount >= m_MaxCoroutineCount)
-            {
-                return;
-            }
-            var task = m_TaskList.First.Value;
-            m_TaskList.RemoveFirst();
-            ++ m_CurrentCoroutineCount;
-            StartCoroutine(task.DoAsync(OnDoFinish));
+            m_ProcessTasks[index] = task;
+            StartCoroutine(ExecuteTask(index, task as IExecuteTask));
         }
 
-        private void OnDoFinish()
+        private IEnumerator ExecuteTask(int index, IExecuteTask task)
         {
-            -- m_CurrentCoroutineCount;
-            StartNextTask();
+            task.OnStart();
+            yield return task.OnExecute();
+            m_ProcessTasks[index] = null;
+        }
+
+        private void Update()
+        {
+            // marktodo
+            float dt = 0;
+            for (int i = 0; i < m_ProcessTasks.Length; i++)
+            {
+                var task = m_ProcessTasks[i];
+                if(task == null)
+                {
+                    TryStartTask(i);
+                }
+                else
+                {
+                    var updateTask = task as IUpdateTask;
+                    if(updateTask != null)
+                    {
+                        if(updateTask.finish)
+                        {
+                            m_ProcessTasks[i] = null;
+                        }
+                        else
+                        {
+                            updateTask.OnUpdate(dt);
+                        }
+                    }
+                }
+            }
         }
     }
 }
