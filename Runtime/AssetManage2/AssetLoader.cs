@@ -2,6 +2,7 @@ using UnityEngine;
 using System;
 using System.Collections.Generic;
 using Object = UnityEngine.Object;
+using UnityEngine.SceneManagement;
 
 namespace Litchi.AssetManage2
 {
@@ -18,7 +19,7 @@ namespace Litchi.AssetManage2
 
         public T LoadSync<T>(string assetName) where T : Object
         {
-            if(typeof(T) == typeof(Sprite))
+            if (typeof(T) == typeof(Sprite))
             {
                 Object obj = null;
                 return obj as T;
@@ -32,13 +33,49 @@ namespace Litchi.AssetManage2
             }
         }
 
+        public void LoadSceneSync(string assetName)
+        {
+            var key = AssetSearchKey.Allocate(assetName);
+
+            if (AssetFactory.assetBundleSceneAssetCreator.Match(key))
+            {
+                var asset = AssetFactory.assetBundleSceneAssetCreator.Create(key) as AssetBundleSceneAsset;
+#if UNITY_EDITOR
+                var simulate = true;
+                if(simulate)
+                {
+                    string path = UnityEditor.AssetDatabase.GetAssetPathsFromAssetBundle(asset.assetBundleName)[0];
+                    if(!string.IsNullOrEmpty(path))
+                    {
+                        UnityEditor.SceneManagement.EditorSceneManager.LoadSceneInPlayMode(path, new LoadSceneParameters());
+                        key.Recycle();
+                        m_TempDependencies.Clear();
+                        return;
+                    }
+                }
+// #else
+                LoadAssetSync(key);
+                SceneManager.LoadScene(assetName);
+                key.Recycle();
+                m_TempDependencies.Clear();
+                return;
+#endif
+            }
+            else
+            {
+                key.Recycle();
+                m_TempDependencies.Clear();
+                Logger.LogError("资源名称错误！请检查资源名称是否正确或是否被标记！assetname : " + assetName);
+            }
+        }
+
         public IAsset LoadAssetSync(AssetSearchKey key)
         {
             Add2Load(key);
             LoadSync();
 
             var asset = AssetManager.instance.GetAsset(key);
-            if(asset == null)
+            if (asset == null)
             {
 
             }
@@ -51,13 +88,13 @@ namespace Litchi.AssetManage2
 
         private void LoadSync()
         {
-            while(m_WaitLoadList.Count > 0)
+            while (m_WaitLoadList.Count > 0)
             {
                 var first = m_WaitLoadList.First.Value;
-                -- m_LoadingCount;
+                --m_LoadingCount;
                 m_WaitLoadList.RemoveFirst();
-                if(first == null) return;
-                if(first.LoadSync())
+                if (first == null) return;
+                if (first.LoadSync())
                 {
 
                 }
@@ -97,9 +134,9 @@ namespace Litchi.AssetManage2
         private void Add2Load(AssetSearchKey key, Action<bool, IAsset> listener = null, bool lastOrder = true)
         {
             IAsset asset = FindAssetInArray(m_AssetList, key);
-            if(asset != null)
+            if (asset != null)
             {
-                if(listener != null)
+                if (listener != null)
                 {
                     // marktodo
                     asset.AddLoadDoneListener(listener);
@@ -109,23 +146,23 @@ namespace Litchi.AssetManage2
 
             asset = AssetManager.instance.GetOrCreateAsset(key);
 
-            if(asset == null)
+            if (asset == null)
             {
                 return;
             }
 
-            if(listener != null)
+            if (listener != null)
             {
                 // marktodo
                 asset.AddLoadDoneListener(listener);
             }
 
             var dependencies = asset.GetDependencies();
-            if(dependencies != null)
+            if (dependencies != null)
             {
                 foreach (var item in dependencies)
                 {
-                    if(!m_TempDependencies.Contains(item))
+                    if (!m_TempDependencies.Contains(item))
                     {
                         var searchKey = AssetSearchKey.Allocate(item, null, typeof(AssetBundle));
                         m_TempDependencies.Add(item);
@@ -144,17 +181,17 @@ namespace Litchi.AssetManage2
             var oldAsset = FindAssetInArray(m_AssetList, key);
             key.Recycle();
 
-            if(oldAsset != null)
+            if (oldAsset != null)
             {
                 return;
             }
 
             asset.Retain();
             m_AssetList.Add(asset);
-            if(asset.state != AssetState.Ready)
+            if (asset.state != AssetState.Ready)
             {
-                ++ m_LoadingCount;
-                if(lastOrder)
+                ++m_LoadingCount;
+                if (lastOrder)
                 {
                     m_WaitLoadList.AddLast(asset);
                 }
@@ -167,10 +204,10 @@ namespace Litchi.AssetManage2
 
         private static IAsset FindAssetInArray(List<IAsset> list, AssetSearchKey key)
         {
-            if(list == null) return null;
+            if (list == null) return null;
             for (int i = list.Count - 1; i >= 0; i--)
             {
-                if(key.Match(list[i]))
+                if (key.Match(list[i]))
                 {
                     return list[i];
                 }
@@ -180,9 +217,9 @@ namespace Litchi.AssetManage2
 
         private void DoLoadAsync()
         {
-            if(m_LoadingCount == 0)
+            if (m_LoadingCount == 0)
             {
-                if(m_Listener != null)
+                if (m_Listener != null)
                 {
                     var callback = m_Listener;
                     m_Listener = null;
@@ -193,22 +230,22 @@ namespace Litchi.AssetManage2
 
             var nextNode = m_WaitLoadList.First;
             LinkedListNode<IAsset> currentNode = null;
-            while(nextNode != null)
+            while (nextNode != null)
             {
                 currentNode = nextNode;
                 var asset = currentNode.Value;
                 nextNode = currentNode.Next;
-                if(asset.CheckDependenciesLoadDone())
+                if (asset.CheckDependenciesLoadDone())
                 {
                     m_WaitLoadList.Remove(currentNode);
-                    if(asset.state != AssetState.Ready)
+                    if (asset.state != AssetState.Ready)
                     {
                         asset.AddLoadDoneListener(OnAssetLoadDone);
                         asset.LoadAsync();
                     }
                     else
                     {
-                        -- m_LoadingCount;
+                        --m_LoadingCount;
                     }
                 }
             }
@@ -216,11 +253,11 @@ namespace Litchi.AssetManage2
 
         private void OnAssetLoadDone(bool result, IAsset asset)
         {
-            -- m_LoadingCount;
+            --m_LoadingCount;
             DoLoadAsync();  // 加载下一个资源
-            if(m_LoadingCount == 0)
+            if (m_LoadingCount == 0)
             {
-                if(m_Listener != null)
+                if (m_Listener != null)
                 {
                     m_Listener();
                 }
@@ -229,7 +266,7 @@ namespace Litchi.AssetManage2
 
         public void ReleaseAllAssets()
         {
-            
+
         }
 
         #region IPoolable
