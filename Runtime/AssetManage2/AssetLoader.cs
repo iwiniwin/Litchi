@@ -102,7 +102,7 @@ namespace Litchi.AssetManage2
         }
 
         private Action m_Listener;
-        public void LoadAsync(Action listener)
+        public void LoadAsync(Action listener = null)
         {
             m_Listener = listener;
             DoLoadAsync();
@@ -127,6 +127,13 @@ namespace Litchi.AssetManage2
         public void Add2Load(string assetName, string assetBundleName, Action<bool, IAsset> listener = null, bool lastOrder = true)
         {
             var key = AssetSearchKey.Allocate(assetName, assetBundleName);
+            Add2Load(key, listener, lastOrder);
+            key.Recycle();
+        }
+
+        public void Add2Load<T>(string assetName, Action<bool, IAsset> listener = null, bool lastOrder = true)
+        {
+            var key = AssetSearchKey.Allocate(assetName, null, typeof(T));
             Add2Load(key, listener, lastOrder);
             key.Recycle();
         }

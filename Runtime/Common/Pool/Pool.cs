@@ -20,7 +20,7 @@ namespace Litchi
         bool Recycle(T obj);
     }
     
-    internal interface IPoolable
+    public interface IPoolable
     {
         void OnRecycled();
         bool isRecycled{ get; set; }
@@ -30,7 +30,7 @@ namespace Litchi
     /// 对象池
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    internal abstract class Pool<T> : IPool<T>
+    public abstract class Pool<T> : IPool<T>
     {
         protected readonly Stack<T> m_CacheStack = new Stack<T>();
 
@@ -58,7 +58,7 @@ namespace Litchi
     /// <summary>
     /// 对象工厂接口
     /// </summary>
-    internal interface IObjectFactory<T>
+    public interface IObjectFactory<T>
     {
         /// <summary>
         /// 创建对象

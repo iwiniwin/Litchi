@@ -4,7 +4,7 @@ namespace Litchi
 {
     // todomark SafeObjectPool 支持线程安全的pool，替换Logger里的m_DataPool
 
-    internal class ObjectPool<T> : Pool<T>, ISingleton where T : IPoolable, new()
+    public class ObjectPool<T> : Pool<T>, ISingleton where T : IPoolable, new()
     {
         void ISingleton.OnSingletonInit()
         {

@@ -17,6 +17,11 @@ namespace Litchi.AssetManage2
             new AssetBundleLoaderCreator(),
         };
 
+        public static void AddAssetCreator(IAssetCreator creator)
+        {
+            m_AssetCreators.Add(creator);
+        }
+
         public static AssetBundleSceneAssetCreator assetBundleSceneAssetCreator = new AssetBundleSceneAssetCreator();
         
         public static IAsset Create(AssetSearchKey key)
