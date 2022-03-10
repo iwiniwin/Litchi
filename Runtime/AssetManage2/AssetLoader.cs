@@ -276,6 +276,30 @@ namespace Litchi.AssetManage2
 
         }
 
+        public void ReleaseAsset(string assetName)
+        {
+            if(string.IsNullOrEmpty(assetName)) return;
+            var key = AssetSearchKey.Allocate(assetName);
+            var asset = AssetManager.instance.GetAsset(key);
+            key.Recycle();
+            if(asset == null) return;
+            if(m_WaitLoadList.Remove(asset))
+            {
+                -- m_LoadingCount;
+                if(m_LoadingCount == 0)
+                {
+                    m_Listener = null;
+                }
+            }
+
+            if(m_AssetList.Remove(asset))
+            {
+                asset.RemoveLoadDoneListener(OnAssetLoadDone);
+                asset.Release();
+                // AssetManager.instance.clearonUpdate();  // 遍历缓存的asset，将引用为0的都release
+            }
+        }
+
         #region IPoolable
 
         bool IPoolable.isRecycled { get; set; }

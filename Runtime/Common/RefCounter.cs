@@ -28,5 +28,15 @@ namespace Litchi
         {
 
         }
+
+        public bool IsZeroRef()
+        {
+            return refCount == 0;
+        }
+
+        public void MergeRefCount(IRefCounter counter)
+        {
+            refCount += counter.refCount;
+        } 
     }
 }
