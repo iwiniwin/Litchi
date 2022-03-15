@@ -9,7 +9,7 @@ namespace Litchi.AssetManage2
     {
         public static ResData BuildEditorDataTable()
         {
-            Logger.Log("Start Build Editor Data Table");
+            Logger.Info("Start Build Editor Data Table");
             var data = new ResData();
             AddAssetBundle2ResData(data);
             return data;

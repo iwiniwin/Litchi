@@ -100,12 +100,12 @@ namespace Litchi.AssetManage2
                 searchKey.Recycle();
                 try
                 {
-                    Logger.Log(string.Format("Already Add AssetData : {0} \n OldAB : {1}    NewAB : {2}", 
+                    Logger.Info(string.Format("Already Add AssetData : {0} \n OldAB : {1}    NewAB : {2}", 
                         data.assetName, m_AssetBundleUnits[old.assetBundleIndex].name, m_AssetBundleUnits[data.assetBundleIndex].name));
                 }
                 catch(Exception e)
                 {
-                    Logger.LogError(e);
+                    Logger.Error(e);
                 }
             }
             else
@@ -121,12 +121,12 @@ namespace Litchi.AssetManage2
 
                 try
                 {
-                    Logger.Log(string.Format("Already Add AssetData : {0} \n OldAB : {1}    NewAB : {2}", 
+                    Logger.Info(string.Format("Already Add AssetData : {0} \n OldAB : {1}    NewAB : {2}", 
                         data.UUID, m_AssetBundleUnits[old.assetBundleIndex].name, m_AssetBundleUnits[data.assetBundleIndex].name));
                 }
                 catch(Exception e)
                 {
-                    Logger.LogError(e);
+                    Logger.Error(e);
                 }
             }
             else

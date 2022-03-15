@@ -50,7 +50,7 @@ namespace Litchi.AssetManage2
                 m_UnloadFlag = true;
                 if(bundle == null)
                 {
-                    Logger.LogError(string.Format("[AssetBundleLoader] Failed to Load Asset<{0}> : {1}", assetType.FullName, assetName));
+                    Logger.Error(string.Format("[AssetBundleLoader] Failed to Load Asset<{0}> : {1}", assetType.FullName, assetName));
                     OnLoadFailed();
                     return false;
                 }
@@ -108,7 +108,7 @@ namespace Litchi.AssetManage2
 
                     if(!request.isDone)
                     {
-                        Logger.LogError(string.Format("[AssetBundleLoader] Failed to Load Asset<{0}> : {1}", assetType.FullName, assetName));
+                        Logger.Error(string.Format("[AssetBundleLoader] Failed to Load Asset<{0}> : {1}", assetType.FullName, assetName));
                         OnLoadFailed();
                         yield break;
                     }

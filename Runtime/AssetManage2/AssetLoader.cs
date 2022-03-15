@@ -65,7 +65,7 @@ namespace Litchi.AssetManage2
             {
                 key.Recycle();
                 m_TempDependencies.Clear();
-                Logger.LogError("资源名称错误！请检查资源名称是否正确或是否被标记！assetname : " + assetName);
+                Logger.Error("资源名称错误！请检查资源名称是否正确或是否被标记！assetname : " + assetName);
             }
         }
 

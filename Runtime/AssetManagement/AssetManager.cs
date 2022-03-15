@@ -9,7 +9,7 @@ namespace Litchi.AssetManagement
             T result = TryLoad<T>(path);
             if(result == null)
             {
-                Logger.LogError("加载失败：" + path);
+                Logger.Error("加载失败：" + path);
             }
             return result;
         }

@@ -8,7 +8,7 @@ using Litchi.IO;
 
 namespace Litchi
 {
-    public class Logger : MonoSingleton<Logger>
+    public partial class Logger : MonoSingleton<Logger>
     {
         public class LogData
         {
@@ -41,16 +41,6 @@ namespace Litchi
             'L',
             'E'
         };
-
-        public static void Log(object message)
-        {
-            Debug.Log(message);
-        }
-
-        public static void LogError(object message)
-        {
-            Debug.LogError(message);
-        }
 
         public void Init()
         {

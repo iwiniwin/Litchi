@@ -34,7 +34,7 @@ namespace Litchi.Config
                 }
                 catch(Exception e)
                 {
-                    Logger.LogError(string.Format("read {0} failed : {1}", jsonPath, e.ToString()));
+                    Logger.Error(string.Format("read {0} failed : {1}", jsonPath, e.ToString()));
                 }
             }
             return new T();

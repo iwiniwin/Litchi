@@ -167,7 +167,7 @@ namespace Litchi.AssetManagement
         {
             if(m_CustomLoaders == null || m_CustomLoaders.Count == 0)
             {
-                Logger.LogError("未注册自定义加载器");  // marktodo  
+                Logger.Error("未注册自定义加载器");  // marktodo  
                 return null;
             }
             foreach (var loader in m_CustomLoaders)

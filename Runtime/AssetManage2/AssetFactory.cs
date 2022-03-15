@@ -35,7 +35,7 @@ namespace Litchi.AssetManage2
             var res = creator.Create(key);
             if(res == null)
             {
-                Logger.Log("Failed to Create AssetLoader. Not Find By AssetSearchKey : " + key);
+                Logger.Info("Failed to Create AssetLoader. Not Find By AssetSearchKey : " + key);
             }
             return res;            
         }

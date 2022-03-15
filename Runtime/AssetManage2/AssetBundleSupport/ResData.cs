@@ -44,7 +44,7 @@ namespace Litchi.AssetManage2
             if(group == null)
             {
                 group = new AssetDataGroup(key);
-                Logger.Log("#Create Config Group : " + key);
+                Logger.Info("#Create Config Group : " + key);
                 m_AssetDataGroups.Add(group);
             }
             return group.AddAssetBundleName(name, dependencies);

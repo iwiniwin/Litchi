@@ -46,7 +46,7 @@ namespace Litchi.AssetManage2
 
             if(asset == null)
             {
-                Logger.LogError(string.Format("[ResourceAsset] Failed to Load Asset<{0}> From Resources : {1}", assetType.FullName, m_Path));
+                Logger.Error(string.Format("[ResourceAsset] Failed to Load Asset<{0}> From Resources : {1}", assetType.FullName, m_Path));
                 OnLoadFailed();
                 return false;
             }
@@ -93,7 +93,7 @@ namespace Litchi.AssetManage2
             
             if(!resourceRequest.isDone)
             {
-                Logger.LogError(string.Format("[ResourceAsset] Failed to Load Asset<{0}> From Resources : {1}", assetType.FullName, m_Path));
+                Logger.Error(string.Format("[ResourceAsset] Failed to Load Asset<{0}> From Resources : {1}", assetType.FullName, m_Path));
                 OnLoadFailed();
                 yield break;
             }

@@ -49,7 +49,7 @@ namespace Litchi.AssetManage2
                 var assetPaths = AssetBundlePathHelper.GetAssetPaths(bundleLoader.assetName, assetName);
                 if(assetPaths.Length == 0)
                 {
-                    Logger.LogError(string.Format("[AssetBundleAsset] Failed to Load Asset<{0}> : {1}", assetType.FullName, assetName));
+                    Logger.Error(string.Format("[AssetBundleAsset] Failed to Load Asset<{0}> : {1}", assetType.FullName, assetName));
                     OnLoadFailed();
                     return false;
                 }
@@ -72,7 +72,7 @@ namespace Litchi.AssetManage2
             {
                 if(bundleLoader == null || !bundleLoader.assetBundle)
                 {
-                    Logger.LogError(string.Format("[AssetBundleAsset] Failed to Load Asset<{0}> : {1}, Not Find AssetBundle : {2}", assetType.FullName, assetName, assetBundleName));
+                    Logger.Error(string.Format("[AssetBundleAsset] Failed to Load Asset<{0}> : {1}, Not Find AssetBundle : {2}", assetType.FullName, assetName, assetBundleName));
                     // markdown 不调用OnLoadFailed？
                     return false;
                 }
@@ -95,7 +95,7 @@ namespace Litchi.AssetManage2
 
             if(obj == null)
             {
-                Logger.LogError(string.Format("[AssetBundleAsset] Failed to Load Asset<{0}> : {1}", assetType.FullName, assetName));
+                Logger.Error(string.Format("[AssetBundleAsset] Failed to Load Asset<{0}> : {1}", assetType.FullName, assetName));
                 OnLoadFailed();
                 return false;
             }
@@ -138,7 +138,7 @@ namespace Litchi.AssetManage2
                 var assetPaths = AssetBundlePathHelper.GetAssetPaths(bundleLoader.assetName, assetName);
                 if(assetPaths.Length == 0)
                 {
-                    Logger.LogError(string.Format("[AssetBundleAsset] Failed to Load Asset<{0}> : {1}", assetType.FullName, assetName));
+                    Logger.Error(string.Format("[AssetBundleAsset] Failed to Load Asset<{0}> : {1}", assetType.FullName, assetName));
                     OnLoadFailed();
                     yield break;
                 }
@@ -167,7 +167,7 @@ namespace Litchi.AssetManage2
             {
                 if(bundleLoader == null || !bundleLoader.assetBundle)
                 {
-                    Logger.LogError(string.Format("[AssetBundleAsset] Failed to Load Asset<{0}> : {1}, Not Find AssetBundle : {2}", assetType.FullName, assetName, assetBundleName));
+                    Logger.Error(string.Format("[AssetBundleAsset] Failed to Load Asset<{0}> : {1}, Not Find AssetBundle : {2}", assetType.FullName, assetName, assetBundleName));
                     OnLoadFailed();
                     yield break;
                 }
@@ -195,7 +195,7 @@ namespace Litchi.AssetManage2
 
                 if(!request.isDone)
                 {
-                    Logger.LogError(string.Format("[AssetBundleAsset] Failed to Load Asset<{0}> : {1}", assetType.FullName, assetName));
+                    Logger.Error(string.Format("[AssetBundleAsset] Failed to Load Asset<{0}> : {1}", assetType.FullName, assetName));
                     OnLoadFailed();
                     yield break;
                 }
@@ -225,14 +225,14 @@ namespace Litchi.AssetManage2
             key.Recycle();
             if(config == null)
             {
-                Logger.LogError(string.Format("[AssetBundleAsset] Not Find AssetData For Asset : {0}", assetName));
+                Logger.Error(string.Format("[AssetBundleAsset] Not Find AssetData For Asset : {0}", assetName));
                 return;
             }
 
             var name = config.assetBundleName;
             if(string.IsNullOrEmpty(name))
             {
-                Logger.LogError(string.Format("[AssetBundleAsset] Not Find AssetData In Config({0}) : {1}", config.assetBundleIndex, m_PassInAssetBundleName));
+                Logger.Error(string.Format("[AssetBundleAsset] Not Find AssetData In Config({0}) : {1}", config.assetBundleIndex, m_PassInAssetBundleName));
                 return;
             }
 
