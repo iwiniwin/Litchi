@@ -7,6 +7,8 @@ namespace Litchi.AssetManagement
     {
         string GetBundleID(ulong hash);
         string[] GetDirectDependencies(string bundleID);
+        string GetPath(string bundleID);
+        string GetPathName(ulong hash);
     }
     public class AssetBundleDataReader : IAssetBundleDataReader
     {
@@ -16,6 +18,16 @@ namespace Litchi.AssetManagement
         }
 
         public string[] GetDirectDependencies(string bundleID)
+        {
+            return null;
+        }
+
+        public string GetPath(string bundleID)
+        {
+            return null;
+        }
+
+        public string GetPathName(ulong hash)
         {
             return null;
         }

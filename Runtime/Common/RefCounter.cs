@@ -10,12 +10,12 @@ namespace Litchi
     public class RefCounter : IRefCounter
     {
         public int refCount {get; protected set;}
-        public void Retain()
+        public virtual void Retain()
         {
             ++ refCount;
         }
 
-        public void Release()
+        public virtual void Release()
         {
             -- refCount;
             if(refCount == 0)
