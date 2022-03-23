@@ -2,7 +2,7 @@
  * @Author: iwiniwin
  * @Date: 2020-11-08 19:33:53
  * @LastEditors: Please set LastEditors
- * @LastEditTime: 2021-12-06 10:53:21
+ * @LastEditTime: 2022-03-23 15:56:00
  * @Description: 用于Unity的日志格式化打印工具，其他C#项目略作修改也可使用
  * 支持包含且不限于数组，字典，列表等各种数据结构的格式化输出
  * Log formatting printing tool for Unity, other C# items can be modified slightly
@@ -23,8 +23,8 @@ namespace Litchi{
 
     public class Output
     {   
-        public static LogDelegate Log = new LogDelegate(DebugClass.Log);
-        public static LogDelegate2 Log2 = new LogDelegate2(DebugClass.Log);
+        public static LogDelegate Log = new LogDelegate(Logger.Info);
+        public static LogDelegate2 Log2 = new LogDelegate2(Logger.Info);
 
         //
         // 摘要:
