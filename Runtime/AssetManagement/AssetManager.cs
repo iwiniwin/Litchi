@@ -14,7 +14,7 @@ namespace Litchi.AssetManagement
             return result;
         }
 
-        public static AssetLoadHandle LoadAsync<T>(string path, AssetLoadPriority priority = AssetLoadPriority.Normal) where T : Object
+        public static AssetLoadRequest LoadAsync<T>(string path, AssetLoadPriority priority = AssetLoadPriority.Normal) where T : Object
         {
             return AssetDataManager.instance.LoadAsync(path, typeof(T), priority);
         }

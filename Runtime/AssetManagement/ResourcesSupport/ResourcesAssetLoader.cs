@@ -12,14 +12,15 @@ namespace Litchi.AssetManagement
             return Resources.Load(AssetDataManifest.GetHashPath(hash), type);
         }
 
-        public IEnumerator LoadAsync(AssetLoadHandle loadHandle)
+        public AssetLoadRequest LoadAsync(ulong hash, Type type)
         {
-            var assetData = loadHandle.assetData;
-            string path = AssetDataManifest.GetHashPath(assetData.hash);
-            ResourceRequest request = Resources.LoadAsync(path, assetData.type);
-            request.priority = (int)loadHandle.priority;
-            yield return request;
-            assetData.asset = request.asset;
+            // var assetData = loadRequest.assetData;
+            // string path = AssetDataManifest.GetHashPath(assetData.hash);
+            // ResourceRequest request = Resources.LoadAsync(path, assetData.type);
+            // request.priority = (int)loadRequest.priority;
+            // yield return request;
+            // assetData.asset = request.asset;
+            return null;
         }
     }
 }

@@ -12,40 +12,26 @@ namespace Litchi.AssetManagement
         High = 2,
     } 
 
-    public class AssetLoadHandle : CustomYieldInstruction
+    public class AssetLoadRequest : CustomYieldInstruction
     {
         public bool isDone { get; internal set; }
         public float progress { get; internal set; }
         public bool isInterrupt { get; set; } = false;
+        public Object asset { get; private set; }
 
         public AssetLoadPriority priority { get; private set; }
 
-        private AssetData m_AssetData;
-        public AssetData assetData
-        {
-            get
-            {
-                var temp = m_AssetData;
-                // m_AssetData = null;  // marktodo
-                return temp;
-            }
-            set
-            {
-                m_AssetData = value;
-            }
-        }
-
-        public AssetLoadHandle(AssetLoadPriority priority)
+        public AssetLoadRequest(AssetLoadPriority priority)
         {
             this.priority = priority;
         }
         
         public void Clear()
         {
-            if(m_AssetData != null)
+            if(asset != null)
             {
                 // unload marktodo
-                m_AssetData = null;
+                asset = null;
             }
             isDone = false;
             progress = 0;

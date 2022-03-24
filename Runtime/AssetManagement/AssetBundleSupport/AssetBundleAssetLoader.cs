@@ -34,26 +34,27 @@ namespace Litchi.AssetManagement
             return asset;
         }
 
-        public IEnumerator LoadAsync(AssetLoadHandle loadHandle)
+        public AssetLoadRequest LoadAsync(ulong hash, Type type)
         {
-            var assetData = loadHandle.assetData;
-            string path = AssetDataManifest.GetHashPath(assetData.hash);
+            // var assetData = loadRequest.assetData;
+            // string path = AssetDataManifest.GetHashPath(assetData.hash);
 
-            AssetBundleCreateRequest bundleCreateRequest = m_AssetBundleLoader.LoadAsync(assetData.hash);
+            // AssetBundleCreateRequest bundleCreateRequest = m_AssetBundleLoader.LoadAsync(assetData.hash);
 
-            yield return bundleCreateRequest;
+            // yield return bundleCreateRequest;
 
-            AssetBundle assetBundle = bundleCreateRequest.assetBundle;
-            if(assetBundle != null)
-            {
-                string name = m_BundleDataManifest.GetPathName(assetData.hash);
-                AssetBundleRequest request = assetBundle.LoadAssetAsync(name, assetData.type);
-                request.priority = (int)loadHandle.priority;
-                yield return request;
-                assetData.asset = request.asset;
-            }
+            // AssetBundle assetBundle = bundleCreateRequest.assetBundle;
+            // if(assetBundle != null)
+            // {
+            //     string name = m_BundleDataManifest.GetPathName(assetData.hash);
+            //     AssetBundleRequest request = assetBundle.LoadAssetAsync(name, assetData.type);
+            //     request.priority = (int)loadRequest.priority;
+            //     yield return request;
+            //     assetData.asset = request.asset;
+            // }
 
-            m_AssetBundleLoader.TryUnload(assetData.hash);
+            // m_AssetBundleLoader.TryUnload(assetData.hash);
+            return null;
         }
          
         protected virtual IAssetBundleLoader GetAssetBundleLoader(IAssetBundleDataManifest manifest)

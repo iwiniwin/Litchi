@@ -5,25 +5,6 @@ using Object = UnityEngine.Object;
 
 namespace Litchi.AssetManagement
 {
-    public interface IAssetLoader 
-    {
-        Object Load(ulong hash, Type type);
-        IEnumerator LoadAsync(AssetLoadHandle loadHandle);
-    }
-
-    public interface ICustomAssetLoader : IAssetLoader
-    {
-        bool Match(string path);
-    }
-
-    public enum AssetLoaderType
-    {
-        AssetBundle,
-        Resources,
-        AssetDatabase,
-        Custom,
-    }
-
     public class AssetDataManager : MonoSingleton<AssetDataManager>
     {
         private Dictionary<ulong, AssetData> m_PathHash2Data = new Dictionary<ulong, AssetData>();
@@ -50,38 +31,39 @@ namespace Litchi.AssetManagement
             return asset;
         }
 
-        public AssetLoadHandle LoadAsync(string path, Type type, AssetLoadPriority priority)
+        public AssetLoadRequest LoadAsync(string path, Type type, AssetLoadPriority priority)
         {
-            AssetLoadHandle loadHandle = new AssetLoadHandle(priority);
-            StartCoroutine(TryLoadAsync(loadHandle, path, type, priority));
-            return loadHandle;
+            // marktodo 检查request是否已存在
+            AssetLoadRequest loadRequest = new AssetLoadRequest(priority);
+            // StartCoroutine(TryLoadAsync(loadRequest, path, type, priority));
+            return loadRequest;
         }
 
-        public IEnumerator TryLoadAsync(AssetLoadHandle loadHandle, string path, Type type, AssetLoadPriority priority)
-        {
-            ulong hash = AssetDataManifest.GetPathHash(path);
-            AssetData assetData = GetAssetData(hash);
-            if(assetData != null)
-            {
-                // Logger.assert(type = type);   // marktodo
-                // marktodo 测试是否需要模拟延迟一帧
-                assetData.Retain();
-                loadHandle.assetData = assetData;
-                loadHandle.isDone = true;
-                yield break;
-            }
-            var loader = GetLoader(path);
-            assetData = new AssetData(hash, type, null);
-            loadHandle.assetData = assetData;
-            yield return loader.LoadAsync(loadHandle);
-            // marktodo 处理progress
-            if(assetData.asset != null)
-            {
-                assetData.Retain();
-                AddAssetData(assetData);
-                loadHandle.isDone = true;
-            }
-        }
+        // public IEnumerator TryLoadAsync(AssetLoadRequest loadRequest, string path, Type type, AssetLoadPriority priority)
+        // {
+        //     ulong hash = AssetDataManifest.GetPathHash(path);
+        //     AssetData assetData = GetAssetData(hash);
+        //     if(assetData != null)
+        //     {
+        //         // Logger.assert(type = type);   // marktodo
+        //         // marktodo 测试是否需要模拟延迟一帧
+        //         assetData.Retain();
+        //         loadRequest.assetData = assetData;
+        //         loadRequest.isDone = true;
+        //         yield break;
+        //     }
+        //     var loader = GetLoader(path);
+        //     assetData = new AssetData(hash, type, null);
+        //     loadRequest.assetData = assetData;
+        //     yield return loader.LoadAsync(loadRequest);
+        //     // marktodo 处理progress
+        //     if(assetData.asset != null)
+        //     {
+        //         assetData.Retain();
+        //         AddAssetData(assetData);
+        //         loadRequest.isDone = true;
+        //     }
+        // }
 
         private AssetData GetAssetData(ulong hash)
         {
