@@ -121,7 +121,8 @@ namespace Litchi.AssetManagement
 
             IAssetLoader loader = null;
 
-            var type = AssetLoaderType.Resources;
+            // marktodo
+            var type = AssetLoaderType.AssetBundle;
             switch(type)
             {
 #if UNITY_EDITOR
@@ -133,7 +134,7 @@ namespace Litchi.AssetManagement
                     loader = GetBuiltinLoader<ResourcesAssetLoader>();
                     break;
                 case AssetLoaderType.AssetBundle:
-                    // loader = new AssetBundleLoader();
+                    loader = new AssetBundleAssetLoader();
                     break;
                 case AssetLoaderType.Custom:
                     loader = GetCustomLoader(path);

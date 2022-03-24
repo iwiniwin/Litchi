@@ -13,163 +13,57 @@ namespace Litchi.AssetManagement
 {
     public class AssetBundleAssetLoader : IAssetLoader 
     {
-        private Dictionary<string, AssetBundleData> m_BundleDataDict = new Dictionary<string, AssetBundleData>();
-        private LinkedList<string> m_ToBeUnloadedDataCache = new LinkedList<string>();
+        private IAssetBundleDataManifest m_BundleDataManifest;
+        private IAssetBundleLoader m_AssetBundleLoader;
+
+        public AssetBundleAssetLoader()
+        {
+            m_BundleDataManifest = GetAssetBundleDataManifest();
+            m_AssetBundleLoader = GetAssetBundleLoader(m_BundleDataManifest);
+        }
 
         public Object Load(ulong hash, Type type)
         {
             Object asset = null;
-            string bundleID = GetAssetBundleDataReader().GetBundleID(hash);
-            if(bundleID == null) return null;
-            AssetBundleData bundleData = LoadAssetBundleData(bundleID);
-            if(bundleData != null && bundleData.assetBundle != null)
+            AssetBundle assetBundle = m_AssetBundleLoader.Load(hash);
+            if(assetBundle != null)
             {
-                asset = bundleData.assetBundle.LoadAsset(GetAssetBundleDataReader().GetPathName(hash), type);
+                asset = assetBundle.LoadAsset(m_BundleDataManifest.GetPathName(hash), type);
             }
-            TryUnloadAssetBundleData(hash);
+            m_AssetBundleLoader.TryUnload(hash);
             return asset;
-        }
-
-        public void TryUnloadAssetBundleData(ulong hash)
-        {
-            string bundleID = GetAssetBundleDataReader().GetBundleID(hash);
-            if(bundleID == null) return;
-
-            AssetBundleData bundleData = null;
-            if(!m_BundleDataDict.TryGetValue(bundleID, out bundleData))
-            {
-                return;
-            }
-
-            string[] dependencies = GetAssetBundleDataReader().GetDirectDependencies(bundleID);
-            AssetBundleData dependBundleData = null;
-            // marktodo 依赖卸载不用递归？
-            foreach (var depend in dependencies)
-            {
-                if(m_BundleDataDict.TryGetValue(depend, out dependBundleData))
-                {
-                    dependBundleData.Release();
-                }
-            }
-            bundleData.Release();
-
-            if(bundleData.Unloadable())
-            {
-                UnloadBundleData(bundleData);
-            }
-        }
-
-        private void UnloadBundleData(AssetBundleData bundleData)
-        {
-            if(bundleData == null || !bundleData.Unloadable()) return;
-            if(m_ToBeUnloadedDataCache.Contains(bundleData.bundleID)) return;
-            // marktodo
-            const int kMaxCacheBundleCount = 20;
-            if(m_ToBeUnloadedDataCache.Count >= kMaxCacheBundleCount)
-            {
-                bundleData.Retain();
-                UpdateToBeUnloadedDataList(true);
-                bundleData.Release();
-            }
-            m_ToBeUnloadedDataCache.AddLast(bundleData.bundleID);
-        }
-
-        private void UpdateToBeUnloadedDataList(bool force)
-        {
-            if(m_ToBeUnloadedDataCache.Count == 0) return;
-            string bundleID = m_ToBeUnloadedDataCache.First.Value;
-
-            AssetBundleData bundleData = null;
-            m_BundleDataDict.TryGetValue(bundleID, out bundleData);
-
-            if(bundleData == null || !bundleData.Unloadable())
-            {
-                m_ToBeUnloadedDataCache.RemoveFirst();
-                return;
-            }
-
-            if(force || bundleData.TimeOut())
-            {
-                m_ToBeUnloadedDataCache.RemoveFirst();
-                bundleData.Unload(false);
-                m_BundleDataDict.Remove(bundleID);
-            }
-        }
-
-        public AssetBundleData LoadAssetBundleData(string bundleID)
-        {
-            AssetBundleData bundleData = null;
-            if(!m_BundleDataDict.TryGetValue(bundleID, out bundleData))
-            {
-                string[] dependencies = GetAssetBundleDataReader().GetDirectDependencies(bundleID);
-                foreach (var depend in dependencies)
-                {
-                    LoadAssetBundleData(depend);
-                }
-                var assetBundle = LoadAssetBundle(bundleID);
-                if(assetBundle != null)
-                {
-                    bundleData = new AssetBundleData(bundleID, assetBundle);
-                    m_BundleDataDict.Add(bundleID, bundleData);
-                }
-            }
-            bundleData?.Retain();
-            return bundleData;
-        }
-
-        protected virtual AssetBundle LoadAssetBundle(string bundleID)
-        {
-            string path = GetAssetBundleDataReader().GetPath(bundleID);
-            AssetBundle bundle = AssetBundle.LoadFromFile(path);
-            if(bundle == null)
-            {
-                Logger.ErrorFormat("[AssetBundleAssetLoader] load assetbundle failed, path = {0}", path);
-            }
-            else
-            {
-                bundle.name = bundleID;
-            }
-            return bundle;
         }
 
         public IEnumerator LoadAsync(AssetLoadHandle loadHandle)
         {
             var assetData = loadHandle.assetData;
             string path = AssetDataManifest.GetHashPath(assetData.hash);
-            ResourceRequest request = Resources.LoadAsync(path, assetData.type);
-            request.priority = (int)loadHandle.priority;
-            yield return request;
-            assetData.asset = request.asset;
+
+            AssetBundleCreateRequest bundleCreateRequest = m_AssetBundleLoader.LoadAsync(assetData.hash);
+
+            yield return bundleCreateRequest;
+
+            AssetBundle assetBundle = bundleCreateRequest.assetBundle;
+            if(assetBundle != null)
+            {
+                string name = m_BundleDataManifest.GetPathName(assetData.hash);
+                AssetBundleRequest request = assetBundle.LoadAssetAsync(name, assetData.type);
+                request.priority = (int)loadHandle.priority;
+                yield return request;
+                assetData.asset = request.asset;
+            }
+
+            m_AssetBundleLoader.TryUnload(assetData.hash);
         }
          
-        private IAssetBundleLoader m_AssetBundleLoader;
-        private IAssetBundleLoader GetAssetBundleLoader()
+        protected virtual IAssetBundleLoader GetAssetBundleLoader(IAssetBundleDataManifest manifest)
         {
-            if(m_AssetBundleLoader == null)
-            {
-                m_AssetBundleLoader = CreateAssetBundleLoader();
-            }
-            return m_AssetBundleLoader;
+            return new AssetBundleLoader(manifest);
         }
 
-        private IAssetBundleDataReader m_BundleDataReader;
-        private IAssetBundleDataReader GetAssetBundleDataReader()
+        protected virtual IAssetBundleDataManifest GetAssetBundleDataManifest()
         {
-            if(m_BundleDataReader == null)
-            {
-                m_BundleDataReader = CreateAssetBundleDataReader();
-            }
-            return m_BundleDataReader;
-        }
-
-        protected virtual IAssetBundleLoader CreateAssetBundleLoader()
-        {
-            return new AssetBundleLoader();
-        }
-
-        protected virtual IAssetBundleDataReader CreateAssetBundleDataReader()
-        {
-            return new AssetBundleDataReader();
+            return new AssetBundleDataManifest();
         }
     }
 }

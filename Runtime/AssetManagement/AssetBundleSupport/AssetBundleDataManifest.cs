@@ -3,28 +3,28 @@ using System.Collections.Generic;
 
 namespace Litchi.AssetManagement
 {
-    public interface IAssetBundleDataReader
+    public interface IAssetBundleDataManifest
     {
         string GetBundleID(ulong hash);
         string[] GetDirectDependencies(string bundleID);
         string GetPath(string bundleID);
         string GetPathName(ulong hash);
     }
-    public class AssetBundleDataReader : IAssetBundleDataReader
+    public class AssetBundleDataManifest : IAssetBundleDataManifest
     {
         public string GetBundleID(ulong hash)
         {
-            return null;
+            return "null";
         }
 
         public string[] GetDirectDependencies(string bundleID)
         {
-            return null;
+            return new string[]{};
         }
 
         public string GetPath(string bundleID)
         {
-            return null;
+            return "jjjj " + bundleID;
         }
 
         public string GetPathName(ulong hash)
