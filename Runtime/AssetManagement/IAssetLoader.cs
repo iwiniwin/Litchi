@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using Object = UnityEngine.Object;
 
 namespace Litchi.AssetManagement
@@ -6,7 +7,7 @@ namespace Litchi.AssetManagement
     public interface IAssetLoader 
     {
         Object Load(ulong hash, Type type);
-        AssetLoadRequest LoadAsync(ulong hash, Type type);
+        IEnumerator LoadAsync(ulong hash, Type type, Action<Object> assetSetter);
     }
 
     public interface ICustomAssetLoader : IAssetLoader

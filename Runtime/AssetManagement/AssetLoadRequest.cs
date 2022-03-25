@@ -19,10 +19,17 @@ namespace Litchi.AssetManagement
         public bool isInterrupt { get; set; } = false;
         public Object asset { get; private set; }
 
+        public ulong hash { get; private set; }
+        public Type type { get; private set; }
+
         public AssetLoadPriority priority { get; private set; }
 
-        public AssetLoadRequest(AssetLoadPriority priority)
+        public Action<AssetLoadRequest> onCompleted = delegate {};
+
+        public AssetLoadRequest(ulong hash, Type type, AssetLoadPriority priority)
         {
+            this.hash = hash;
+            this.type = type;
             this.priority = priority;
         }
         
@@ -36,6 +43,13 @@ namespace Litchi.AssetManagement
             isDone = false;
             progress = 0;
             isInterrupt = false;
+        }
+
+        internal void OnLoadCompleted(Object asset)
+        {
+            this.asset = asset;
+            isDone = true;
+            onCompleted(this);
         }
 
         public override bool keepWaiting => !isDone;

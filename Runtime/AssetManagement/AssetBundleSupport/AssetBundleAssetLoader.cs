@@ -34,7 +34,7 @@ namespace Litchi.AssetManagement
             return asset;
         }
 
-        public AssetLoadRequest LoadAsync(ulong hash, Type type)
+        public IEnumerator LoadAsync(ulong hash, Type type, Action<Object> assetSetter)
         {
             // var assetData = loadRequest.assetData;
             // string path = AssetDataManifest.GetHashPath(assetData.hash);

@@ -5,7 +5,7 @@ using Object = UnityEngine.Object;
 
 namespace Litchi.AssetManagement
 {
-    public class AssetDataManager : MonoSingleton<AssetDataManager>
+    public class AssetDataManager : Singleton<AssetDataManager>
     {
         private Dictionary<ulong, AssetData> m_PathHash2Data = new Dictionary<ulong, AssetData>();
         private Dictionary<int, ulong> m_InstanceID2PathHash = new Dictionary<int, ulong>();
@@ -33,13 +33,36 @@ namespace Litchi.AssetManagement
 
         public AssetLoadRequest LoadAsync(string path, Type type, AssetLoadPriority priority)
         {
-            // marktodo 检查request是否已存在
-            AssetLoadRequest loadRequest = new AssetLoadRequest(priority);
-            // StartCoroutine(TryLoadAsync(loadRequest, path, type, priority));
+            ulong hash = AssetDataManifest.GetPathHash(path);
+            // marktodo request管理
+            AssetLoadRequest loadRequest = new AssetLoadRequest(hash, type, priority);
+            AssetData assetData = GetAssetData(hash);
+            if(assetData != null)
+            {
+                // Logger.assert(type = type);   // marktodo
+                // marktodo 测试是否需要模拟延迟一帧
+                assetData.Retain();
+                loadRequest.OnLoadCompleted(assetData.asset);
+                return loadRequest;
+            }
+            var loader = GetLoader(path);
+            AssetLoadTask task = new AssetLoadTask(hash, type, loader);
+            task.onCompleted += asset => {
+                
+                // marktodo 处理progress
+                if(asset != null)
+                {
+                    // assetData = new AssetData(hash, type, null);
+                    assetData.Retain();
+                    AddAssetData(assetData);
+                }
+                loadRequest.OnLoadCompleted(asset);
+            };
+            AssetLoadTaskManager.instance.StartTask(task);
             return loadRequest;
         }
 
-        // public IEnumerator TryLoadAsync(AssetLoadRequest loadRequest, string path, Type type, AssetLoadPriority priority)
+        // public AssetLoadRequest TryLoadAsync(string path, Type type, AssetLoadPriority priority)
         // {
         //     ulong hash = AssetDataManifest.GetPathHash(path);
         //     AssetData assetData = GetAssetData(hash);
@@ -162,5 +185,10 @@ namespace Litchi.AssetManagement
             }
             return null;
         }
+    }
+
+    class AssetLoadTaskManager : TaskManager<AssetLoadTaskManager>
+    {
+
     }
 }

@@ -113,7 +113,10 @@ namespace Litchi
             m_SubTaskList.AddLast(task);
         }
 
-        public abstract void OnStart();
+        public virtual void OnStart() 
+        {
+
+        }
 
         public abstract IEnumerator OnExecute();
 
