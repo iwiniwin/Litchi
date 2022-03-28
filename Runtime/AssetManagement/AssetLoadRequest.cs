@@ -12,6 +12,13 @@ namespace Litchi.AssetManagement
         High = 2,
     } 
 
+    public enum AssetLoadStatus
+    {
+        Wait,
+        Loading,
+        Done,
+    }
+
     public class AssetLoadRequest : CustomYieldInstruction
     {
         private AssetData m_AssetData;
@@ -22,9 +29,13 @@ namespace Litchi.AssetManagement
 
         public bool isInterrupt { get; set; } = false;
 
+        public Action<Object> completed = delegate {};
+
         public AssetLoadRequest(AssetData assetData)
         {
             m_AssetData = assetData;
+            // marktodo = 还是 +=
+            m_AssetData.completed = completed;
         }
         
         public override bool keepWaiting => !isDone;

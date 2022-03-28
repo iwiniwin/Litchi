@@ -5,14 +5,13 @@ using Object = UnityEngine.Object;
 
 namespace Litchi.AssetManagement
 {
-    public class ResourcesAssetData : AssetData 
+    public class AssetBundleAssetData : AssetData 
     {
         private ResourceRequest m_Request;
 
         public override void Load()
         {
-            var asset = Resources.Load(AssetDataManifest.GetHashPath(hash), type);
-            OnLoadCompleted(asset);
+            
         }
 
         public override void LoadAsync()

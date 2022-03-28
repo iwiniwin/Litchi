@@ -6,8 +6,23 @@ using Object = UnityEngine.Object;
 
 namespace Litchi.AssetManagement
 {
-    public class AssetBundleData : RefCounter 
+    public class AssetBundleData : AssetData 
     {
+        public override void Load()
+        {
+            
+        }
+
+        public override void LoadAsync()
+        {
+            
+        }
+
+        public override void Update()
+        {
+            
+        }
+
         public static readonly long kBundleTimeOut = 10000;  // ms
 
         public AssetBundle assetBundle { get; private set; }

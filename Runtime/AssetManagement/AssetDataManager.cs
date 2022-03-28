@@ -7,28 +7,30 @@ namespace Litchi.AssetManagement
 {
     public class AssetDataManager : MonoSingleton<AssetDataManager>
     {
-        private Dictionary<ulong, AssetData> m_PathHash2Data = new Dictionary<ulong, AssetData>();
+        private Dictionary<ulong, AssetData> m_AssetDataCache = new Dictionary<ulong, AssetData>();
         private Dictionary<int, ulong> m_InstanceID2PathHash = new Dictionary<int, ulong>();
+
+        private LinkedList<AssetData> m_WaitList = new LinkedList<AssetData>();
+        public static int maxLoadingCount = 8;
+        private LinkedList<AssetData> m_LoadingList = new LinkedList<AssetData>();
 
         public Object Load(string path, Type type)
         {
             ulong hash = AssetDataManifest.GetPathHash(path);
-            AssetData assetData = GetAssetData(hash);
-            if(assetData != null)
+            AssetData assetData = null;
+            if(m_AssetDataCache.TryGetValue(hash, out assetData))
             {
                 // Logger.assert(type = type);   // marktodo
                 assetData.Retain();
                 return assetData.asset;
             }
-            // var loader = GetLoader(path);
-            // var asset = loader.Load(hash, type);
-            assetData = CreateAssetData();
+            assetData = CreateAssetData(hash, type, AssetLoadPriority.Normal);
             assetData.Retain();
-            assetData.Load(hash, type);
+            assetData.Load();
             Logger.Assert(assetData.isDone);
             if(assetData.asset != null)
             {
-                AddAssetData(hash, assetData);
+                CacheAssetData(assetData);
             }
             return assetData.asset;
         }
@@ -37,19 +39,15 @@ namespace Litchi.AssetManagement
         {
             ulong hash = AssetDataManifest.GetPathHash(path);
             // marktodo request管理
-            // AssetLoadRequest loadRequest = new AssetLoadRequest(hash, type, priority);
-            AssetData assetData = GetAssetData(hash);
-            if(assetData != null)
+            AssetData assetData = null;
+            if(m_AssetDataCache.TryGetValue(hash, out assetData))
             {
                 // Logger.assert(type = type);   // marktodo
                 // marktodo 测试是否需要模拟延迟一帧
                 assetData.Retain();
-                // loadRequest.OnLoadCompleted(assetData.asset);
-                // return loadRequest;
                 return new AssetLoadRequest(assetData);
             }
-            // var loader = GetLoader(path);
-            // AssetLoadTask task = new AssetLoadTask(hash, type, loader);
+
             // task.onCompleted += asset => {
                 
             //     // marktodo 处理progress
@@ -62,67 +60,29 @@ namespace Litchi.AssetManagement
             //     loadRequest.OnLoadCompleted(asset);
             // };
             // AssetLoadTaskManager.instance.StartTask(task);
-            assetData = CreateAssetData();
+            assetData = CreateAssetData(hash, type, priority);
+
+            CacheAssetData(assetData);
+
+            // marktodo 什么时候调用Retain
             assetData.Retain();
-            // marktodo 优先级问题，是否立即调用LoadAsync
-            assetData.LoadAsync(hash, type);
-            AddAssetData(hash, assetData);
+            // marktodo cache assetdata
+            // AddAssetData(hash, assetData);
+            AddToWaitList(assetData);
+            // marktodo AssetLoadRequest对象池
             return new AssetLoadRequest(assetData);
         }
 
-        public void Update()
+        public void CacheAssetData(AssetData assetData)
         {
-            foreach (var item in m_PathHash2Data.Values)
-            {
-                item.Update();
-            }
-        }
-
-        // public AssetLoadRequest TryLoadAsync(string path, Type type, AssetLoadPriority priority)
-        // {
-        //     ulong hash = AssetDataManifest.GetPathHash(path);
-        //     AssetData assetData = GetAssetData(hash);
-        //     if(assetData != null)
-        //     {
-        //         // Logger.assert(type = type);   // marktodo
-        //         // marktodo 测试是否需要模拟延迟一帧
-        //         assetData.Retain();
-        //         loadRequest.assetData = assetData;
-        //         loadRequest.isDone = true;
-        //         yield break;
-        //     }
-        //     var loader = GetLoader(path);
-        //     assetData = new AssetData(hash, type, null);
-        //     loadRequest.assetData = assetData;
-        //     yield return loader.LoadAsync(loadRequest);
-        //     // marktodo 处理progress
-        //     if(assetData.asset != null)
-        //     {
-        //         assetData.Retain();
-        //         AddAssetData(assetData);
-        //         loadRequest.isDone = true;
-        //     }
-        // }
-
-        private AssetData GetAssetData(ulong hash)
-        {
-            AssetData assetData = null;
-            if(m_PathHash2Data.TryGetValue(hash, out assetData))
-            {
-                return assetData;
-            }
-            return null;
-        }
-
-        private void AddAssetData(ulong hash, AssetData assetData)
-        {
-            AssetData existedData = null;
-            if(m_PathHash2Data.TryGetValue(hash, out existedData))
-            {
-                existedData.MergeRefCount(assetData);
-                return;
-            }
-            m_PathHash2Data.Add(hash, assetData);
+            m_AssetDataCache.Add(assetData.hash, assetData);
+            // AssetData existedData = null;
+            // if(m_AssetDataCache.TryGetValue(hash, out existedData))
+            // {
+            //     existedData.MergeRefCount(assetData);
+            //     return;
+            // }
+            // m_AssetDataCache.Add(hash, assetData);
 
             // int instanceID = assetData.asset.GetInstanceID();
             // if(m_InstanceID2PathHash.ContainsKey(instanceID))
@@ -135,10 +95,54 @@ namespace Litchi.AssetManagement
             // }
         }
 
-        public AssetData CreateAssetData()
+        public void AddToWaitList(AssetData assetData)
         {
-            return new ResourcesAssetData();
+            if(m_WaitList.Count == 0)
+            {
+                m_WaitList.AddFirst(assetData);
+                return;
+            }
+            var cur = m_WaitList.First;
+            while(cur != null)
+            {
+                if(assetData.priority > cur.Value.priority)
+                {
+                    m_WaitList.AddBefore(cur, assetData);
+                }
+                cur = cur.Next;
+            }
         }
+
+        public void Update()
+        {
+            while(m_WaitList.Count > 0 && m_LoadingList.Count < maxLoadingCount)
+            {
+                var first = m_WaitList.First;
+                m_WaitList.RemoveFirst();
+                first.Value.LoadAsync();
+                m_LoadingList.AddLast(first);
+            }
+            var cur = m_LoadingList.First;
+            while(cur != null)
+            {
+                var data = cur.Value;
+                data.Update();
+                if(data.isDone)
+                {
+                    m_LoadingList.Remove(cur);
+                }
+                cur = cur.Next;
+            }
+        }
+
+        public AssetData CreateAssetData(ulong hash, Type type, AssetLoadPriority priority)
+        {
+            var data = new ResourcesAssetData();
+            data.Reset(hash, type, priority);
+            return data;
+        }
+
+        /////////////////////////////分割线//////////////////////////////////
 
         private Dictionary<Type, IAssetLoader> m_LoaderCache = new Dictionary<Type, IAssetLoader>();
 

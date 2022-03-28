@@ -7,17 +7,20 @@ namespace Litchi.AssetManagement
 {
     public abstract class AssetData : RefCounter
     {
-        // public ulong hash { get; protected set; }
-        // public Type type { get; protected set; }
+        public ulong hash { get; protected set; }
+        public Type type { get; protected set; }
+        public AssetLoadPriority priority { get; protected set; }
 
         public Object asset { get; private set; }
         public bool isDone { get; private set; }
 
         public float progress { get; protected set; }
 
-        public abstract void Load(ulong hash, Type type);
+        public Action<Object> completed = delegate {};
 
-        public abstract void LoadAsync(ulong hash, Type type);
+        public abstract void Load();
+
+        public abstract void LoadAsync();
 
         public abstract void Update();
 
@@ -25,13 +28,18 @@ namespace Litchi.AssetManagement
         {
             this.asset = asset;
             this.isDone = true;
+            completed(this.asset);
         }
 
-        public virtual void Reset()
+        public virtual void Reset(ulong hash, Type type, AssetLoadPriority priority)
         {
             this.asset = null;
             this.isDone = false;
             this.progress = 0;
+            this.hash = hash;
+            this.type = type;
+            this.priority = priority;
+            this.completed = delegate {};
         }
     }
 }
