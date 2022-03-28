@@ -1,20 +1,37 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace Litchi.AssetManagement
 {
-    public class AssetData : RefCounter
+    public abstract class AssetData : RefCounter
     {
-        public ulong hash { get; internal set; }
-        public Object asset { get; internal set; }
-        public Type type { get; internal set; }
+        // public ulong hash { get; protected set; }
+        // public Type type { get; protected set; }
 
-        public AssetData(ulong hash, Type type, Object asset)
+        public Object asset { get; private set; }
+        public bool isDone { get; private set; }
+
+        public float progress { get; protected set; }
+
+        public abstract void Load(ulong hash, Type type);
+
+        public abstract void LoadAsync(ulong hash, Type type);
+
+        public abstract void Update();
+
+        protected void OnLoadCompleted(Object asset)
         {
-            this.hash = hash;
-            this.type = type;
             this.asset = asset;
+            this.isDone = true;
+        }
+
+        public virtual void Reset()
+        {
+            this.asset = null;
+            this.isDone = false;
+            this.progress = 0;
         }
     }
 }
