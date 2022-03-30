@@ -132,8 +132,8 @@ namespace Litchi.AssetManagement
                 var assetBundle = LoadAssetBundle(bundleID);
                 if(assetBundle != null)
                 {
-                    bundleData = new AssetBundleData(bundleID, assetBundle);
-                    m_BundleDataDict.Add(bundleID, bundleData);
+                    // bundleData = new AssetBundleData(bundleID, assetBundle);
+                    // m_BundleDataDict.Add(bundleID, bundleData);
                 }
             }
             bundleData?.Retain();

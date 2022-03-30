@@ -5,8 +5,10 @@ using Object = UnityEngine.Object;
 
 namespace Litchi.AssetManagement
 {
-    public class AssetDataManager : MonoSingleton<AssetDataManager>
+    internal class AssetDataManager : MonoSingleton<AssetDataManager>
     {
+        // public Func<string, Type, AssetData> assetDataCreator { get; set; } = CreateAssetData;
+
         private Dictionary<ulong, AssetData> m_AssetDataCache = new Dictionary<ulong, AssetData>();
         private Dictionary<int, ulong> m_InstanceID2PathHash = new Dictionary<int, ulong>();
 
@@ -14,7 +16,7 @@ namespace Litchi.AssetManagement
         public static int maxLoadingCount = 8;
         private LinkedList<AssetData> m_LoadingList = new LinkedList<AssetData>();
 
-        public Object Load(string path, Type type)
+        public AssetData Load(string path, Type type, Func<string, Type, AssetData> assetDataCreator)
         {
             ulong hash = AssetDataManifest.GetPathHash(path);
             AssetData assetData = null;
@@ -22,20 +24,21 @@ namespace Litchi.AssetManagement
             {
                 // Logger.assert(type = type);   // marktodo
                 assetData.Retain();
-                return assetData.asset;
+                return assetData;
             }
-            assetData = CreateAssetData(hash, type, AssetLoadPriority.Normal);
+            assetData = assetDataCreator(path, type);
+            assetData.Reset(hash, type, AssetLoadPriority.Normal);
             assetData.Retain();
             assetData.Load();
-            Logger.Assert(assetData.isDone);
+            Logger.Assert(assetData.isDone, "Load后没有设置isDone");
             if(assetData.asset != null)
             {
                 CacheAssetData(assetData);
             }
-            return assetData.asset;
+            return assetData;
         }
 
-        public AssetLoadRequest LoadAsync(string path, Type type, AssetLoadPriority priority)
+        public AssetData LoadAsync(string path, Type type, AssetLoadPriority priority, Func<string, Type, AssetData> assetDataCreator)
         {
             ulong hash = AssetDataManifest.GetPathHash(path);
             // marktodo request管理
@@ -45,7 +48,7 @@ namespace Litchi.AssetManagement
                 // Logger.assert(type = type);   // marktodo
                 // marktodo 测试是否需要模拟延迟一帧
                 assetData.Retain();
-                return new AssetLoadRequest(assetData);
+                return assetData;
             }
 
             // task.onCompleted += asset => {
@@ -60,7 +63,8 @@ namespace Litchi.AssetManagement
             //     loadRequest.OnLoadCompleted(asset);
             // };
             // AssetLoadTaskManager.instance.StartTask(task);
-            assetData = CreateAssetData(hash, type, priority);
+            assetData = assetDataCreator(path, type);
+            assetData.Reset(hash, type, priority);
 
             CacheAssetData(assetData);
 
@@ -70,7 +74,7 @@ namespace Litchi.AssetManagement
             // AddAssetData(hash, assetData);
             AddToWaitList(assetData);
             // marktodo AssetLoadRequest对象池
-            return new AssetLoadRequest(assetData);
+            return assetData;
         }
 
         public void CacheAssetData(AssetData assetData)
@@ -135,12 +139,50 @@ namespace Litchi.AssetManagement
             }
         }
 
-        public AssetData CreateAssetData(ulong hash, Type type, AssetLoadPriority priority)
+        public void Unload(Object asset)
         {
-            var data = new ResourcesAssetData();
-            data.Reset(hash, type, priority);
-            return data;
+            if(asset == null) return;
+            ulong hash = 0;
+            if(!m_InstanceID2PathHash.TryGetValue(asset.GetInstanceID(), out hash))
+            {
+                // 未知资源
+                return;
+            }
+
+            AssetData assetData;
+            if(m_AssetDataCache.TryGetValue(hash, out assetData))
+            {
+                assetData.Release();
+            }
+            else
+            {
+                // 未知资源
+            }
         }
+
+        public void UnloadUnusedAssets()
+        {
+            List<ulong> list = new List<ulong>();
+            foreach (var itor in m_AssetDataCache)
+            {
+                AssetData resourceData = itor.Value;
+                if (resourceData == null || resourceData.IsZeroRef())
+                {
+                    list.Add(itor.Key);
+                }
+            }
+
+            for (int i = 0; i < list.Count; ++i)
+            {
+                m_AssetDataCache.Remove(list[i]);
+            }
+        }
+
+        // public static AssetData CreateAssetData(string path, Type type)
+        // {
+        //     // return new ResourcesAssetData();
+        //     return new AssetBundleAssetData();
+        // }
 
         /////////////////////////////分割线//////////////////////////////////
 

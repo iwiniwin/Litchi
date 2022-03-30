@@ -1,9 +1,13 @@
 using UnityEngine;
+using System;
+using Object = UnityEngine.Object;
 
 namespace Litchi.AssetManagement
 {
     public class AssetManager
     {
+        public static Func<string, Type, AssetData> assetDataCreator { get; set; } = CreateAssetData;
+
         public static T Load<T>(string path) where T : Object
         {
             T result = TryLoad<T>(path);
@@ -16,14 +20,14 @@ namespace Litchi.AssetManagement
 
         public static AssetLoadRequest LoadAsync<T>(string path, AssetLoadPriority priority = AssetLoadPriority.Normal) where T : Object
         {
-            return AssetDataManager.instance.LoadAsync(path, typeof(T), priority);
+            var data = AssetDataManager.instance.LoadAsync(path, typeof(T), priority, assetDataCreator);
+            return new AssetLoadRequest(data);
         }
 
         private static T TryLoad<T>(string path) where T : Object
         {
-            // ulong pathHash = PathToHash(path);
-            // return TryLoad<T>(pathHash);
-            return AssetDataManager.instance.Load(path, typeof(T)) as T;
+            var data = AssetDataManager.instance.Load(path, typeof(T), assetDataCreator);
+            return data.asset as T;
         }
 
         private static T TryLoad<T>(ulong pathHash) where T : Object
@@ -31,6 +35,29 @@ namespace Litchi.AssetManagement
             // return AssetLoaderFactory.Get()
             // return AssetDataManager.instance.load(pathHash)
             return default(T);
+        }
+
+        private static AssetData CreateAssetData(string path, Type type)
+        {
+            // return new ResourcesAssetData();
+            return new AssetBundleAssetData();
+        }
+
+        public static void Unload(Object asset)
+        {
+            AssetDataManager.instance.Unload(asset);
+        }
+
+        public static void UnloadUnusedAssets()
+        {
+            // marktodo
+            // 前面资源被zero ref，则调用UnloadUnusedAssets的时候就可以被清理了？
+            Resources.UnloadUnusedAssets();
+        }
+
+        public static void UnloadAssetBundle()
+        {
+
         }
     }
 }

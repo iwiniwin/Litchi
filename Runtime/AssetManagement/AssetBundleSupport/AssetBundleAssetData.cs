@@ -11,7 +11,17 @@ namespace Litchi.AssetManagement
 
         public override void Load()
         {
-            
+            AssetBundleDependencies dependencies = new AssetBundleDependencies();
+            dependencies.Load();
+            Logger.Assert(dependencies.isDone, "Load后没有设置isDone");
+            if(dependencies.mainBundle == null)
+            {
+                OnLoadCompleted(null);
+            }
+            else
+            {
+                OnLoadCompleted(dependencies.mainBundle.LoadAsset("todoname"));
+            }
         }
 
         public override void LoadAsync()

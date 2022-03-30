@@ -7,11 +7,24 @@ namespace Litchi.AssetManagement
 {
     public class AssetBundleDependencies : AssetData 
     {
-        private ResourceRequest m_Request;
+        public AssetBundle mainBundle { get; protected set; }
 
         public override void Load()
         {
-            
+            string[] dependencies = null;
+            AssetBundleData assetBundleData = new AssetBundleData();
+            assetBundleData.Load();
+            mainBundle = assetBundleData.assetBundle;
+
+            if(dependencies != null && dependencies.Length > 0)
+            {
+                foreach(var depend in dependencies)
+                {
+                    AssetBundleData data = new AssetBundleData();
+                    data.Load();
+                    // 缓存data?
+                }
+            }
         }
 
         public override void LoadAsync()
