@@ -21,21 +21,21 @@ namespace Litchi.AssetManagement
 
     public class AssetLoadRequest : CustomYieldInstruction
     {
-        private Asset m_Asset;
+        private AssetAgent m_Agent;
 
-        public bool isDone => m_Asset.isDone;
-        public float progress => m_Asset.progress;
-        public Object asset => m_Asset.asset;
+        public bool isDone => m_Agent.isDone;
+        public float progress => m_Agent.progress;
+        public Object asset => m_Agent.asset;
 
         public bool isInterrupt { get; set; } = false;
 
         public Action<Object> completed = delegate {};
 
-        public AssetLoadRequest(Asset Asset)
+        public AssetLoadRequest(AssetAgent agent)
         {
-            m_Asset = Asset;
+            m_Agent = agent;
             // marktodo = 还是 +=
-            m_Asset.completed = completed;
+            m_Agent.completed = completed;
         }
         
         public override bool keepWaiting => !isDone;

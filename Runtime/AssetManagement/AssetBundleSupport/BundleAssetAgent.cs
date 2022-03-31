@@ -5,14 +5,23 @@ using Object = UnityEngine.Object;
 
 namespace Litchi.AssetManagement
 {
-    public class ResourcesAsset : Asset 
+    public class BundleAssetAgent : AssetAgent 
     {
         private ResourceRequest m_Request;
 
         public override void Load()
         {
-            var asset = Resources.Load(AssetManifest.GetHashPath(hash), type);
-            OnLoadCompleted(asset);
+            AssetBundleDependencies dependencies = new AssetBundleDependencies();
+            dependencies.Load();
+            Logger.Assert(dependencies.isDone, "Load后没有设置isDone");
+            if(dependencies.mainBundle == null)
+            {
+                OnLoadCompleted(null);
+            }
+            else
+            {
+                OnLoadCompleted(dependencies.mainBundle.LoadAsset("todoname"));
+            }
         }
 
         public override void LoadAsync()

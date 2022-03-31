@@ -6,26 +6,26 @@ using Object = UnityEngine.Object;
 
 namespace Litchi.AssetManagement
 {
-    public class Bundle : Asset 
+    public class BundleAgent : AssetAgent 
     {
         private AssetBundleCreateRequest m_Request;
-        private List<Bundle> m_Dependencies = new List<Bundle>();
+        private List<BundleAgent> m_Dependencies = new List<BundleAgent>();
         public override void Load()
         {
             string[] dependencies = null;
-            // Bundle Bundle = new Bundle();
-            // Bundle.Load();
-            // mainBundle = Bundle.assetBundle;
+            // BundleAgent BundleAgent = new BundleAgent();
+            // BundleAgent.Load();
+            // mainBundle = BundleAgent.assetBundle;
 
             if(dependencies != null && dependencies.Length > 0)
             {
                 foreach(var depend in dependencies)
                 {
-                    // Bundle data = new Bundle();
+                    // BundleAgent data = new BundleAgent();
                     // data.Load();
                     // 缓存data?
-                    AssetSystem.instance.Load(depend, type, (vpath, type) => {
-                        return new Bundle();
+                    AssetAgentManager.instance.Load(depend, type, (vpath, type) => {
+                        return new BundleAgent();
                     });
                 }
             }
@@ -40,12 +40,12 @@ namespace Litchi.AssetManagement
             {
                 foreach(var depend in dependencies)
                 {
-                    // Bundle data = new Bundle();
+                    // BundleAgent data = new BundleAgent();
                     // data.Load();
                     // 缓存data?
-                    var data = AssetSystem.instance.LoadAsync(depend, type, priority, (vpath, type) => {
-                        return new Bundle();
-                    }) as Bundle;
+                    var data = AssetAgentManager.instance.LoadAsync(depend, type, priority, (vpath, type) => {
+                        return new BundleAgent();
+                    }) as BundleAgent;
                     m_Dependencies.Add(data);
                 }
             }
@@ -103,7 +103,7 @@ namespace Litchi.AssetManagement
             } 
         }
 
-        public Bundle()
+        public BundleAgent()
         {
             // this.bundleID = bundleID;
             // this.assetBundle = assetBundle;

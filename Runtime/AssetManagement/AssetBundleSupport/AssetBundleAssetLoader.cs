@@ -36,24 +36,24 @@ namespace Litchi.AssetManagement
 
         public IEnumerator LoadAsync(ulong hash, Type type, Action<Object> assetSetter)
         {
-            // var Asset = loadRequest.Asset;
-            // string path = AssetManifest.GetHashPath(Asset.hash);
+            // var agent = loadRequest.agent;
+            // string path = AssetManifest.GetHashPath(agent.hash);
 
-            // AssetBundleCreateRequest bundleCreateRequest = m_AssetBundleLoader.LoadAsync(Asset.hash);
+            // AssetBundleCreateRequest bundleCreateRequest = m_AssetBundleLoader.LoadAsync(agent.hash);
 
             // yield return bundleCreateRequest;
 
             // AssetBundle assetBundle = bundleCreateRequest.assetBundle;
             // if(assetBundle != null)
             // {
-            //     string name = m_BundleDataManifest.GetPathName(Asset.hash);
-            //     AssetBundleRequest request = assetBundle.LoadAssetAsync(name, Asset.type);
+            //     string name = m_BundleDataManifest.GetPathName(agent.hash);
+            //     AssetBundleRequest request = assetBundle.LoadAssetAsync(name, agent.type);
             //     request.priority = (int)loadRequest.priority;
             //     yield return request;
-            //     Asset.asset = request.asset;
+            //     agent.asset = request.asset;
             // }
 
-            // m_AssetBundleLoader.TryUnload(Asset.hash);
+            // m_AssetBundleLoader.TryUnload(agent.hash);
             return null;
         }
          

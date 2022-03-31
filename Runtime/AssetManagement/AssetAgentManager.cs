@@ -5,50 +5,50 @@ using Object = UnityEngine.Object;
 
 namespace Litchi.AssetManagement
 {
-    internal class AssetSystem : MonoSingleton<AssetSystem>
+    internal class AssetAgentManager : MonoSingleton<AssetAgentManager>
     {
-        // public Func<string, Type, Asset> AssetCreator { get; set; } = CreateAsset;
+        // public Func<string, Type, AssetAgent> AssetCreator { get; set; } = CreateAsset;
 
-        private Dictionary<ulong, Asset> m_AssetCache = new Dictionary<ulong, Asset>();
+        private Dictionary<ulong, AssetAgent> m_AssetAgentCache = new Dictionary<ulong, AssetAgent>();
         private Dictionary<int, ulong> m_InstanceID2PathHash = new Dictionary<int, ulong>();
 
-        private LinkedList<Asset> m_WaitList = new LinkedList<Asset>();
+        private LinkedList<AssetAgent> m_WaitList = new LinkedList<AssetAgent>();
         public static int maxLoadingCount = 8;
-        private LinkedList<Asset> m_LoadingList = new LinkedList<Asset>();
+        private LinkedList<AssetAgent> m_LoadingList = new LinkedList<AssetAgent>();
 
-        public Asset Load(string path, Type type, Func<string, Type, Asset> AssetCreator)
+        public AssetAgent Load(string path, Type type, Func<string, Type, AssetAgent> agentCreator)
         {
             ulong hash = AssetManifest.GetPathHash(path);
-            Asset Asset = null;
-            if(m_AssetCache.TryGetValue(hash, out Asset))
+            AssetAgent agent = null;
+            if(m_AssetAgentCache.TryGetValue(hash, out agent))
             {
                 // Logger.assert(type = type);   // marktodo
-                Asset.Retain();
-                return Asset;
+                agent.Retain();
+                return agent;
             }
-            Asset = AssetCreator(path, type);
-            Asset.Reset(hash, type, AssetLoadPriority.Normal);
-            Asset.Retain();
-            Asset.Load();
-            Logger.Assert(Asset.isDone, "Load后没有设置isDone");
-            if(Asset.asset != null)
+            agent = agentCreator(path, type);
+            agent.Reset(hash, type, AssetLoadPriority.Normal);
+            agent.Retain();
+            agent.Load();
+            Logger.Assert(agent.isDone, "Load后没有设置isDone");
+            if(agent.asset != null)
             {
-                CacheAsset(Asset);
+                CacheAsset(agent);
             }
-            return Asset;
+            return agent;
         }
 
-        public Asset LoadAsync(string path, Type type, AssetLoadPriority priority, Func<string, Type, Asset> AssetCreator)
+        public AssetAgent LoadAsync(string path, Type type, AssetLoadPriority priority, Func<string, Type, AssetAgent> agentCreator)
         {
             ulong hash = AssetManifest.GetPathHash(path);
             // marktodo request管理
-            Asset Asset = null;
-            if(m_AssetCache.TryGetValue(hash, out Asset))
+            AssetAgent agent = null;
+            if(m_AssetAgentCache.TryGetValue(hash, out agent))
             {
                 // Logger.assert(type = type);   // marktodo
                 // marktodo 测试是否需要模拟延迟一帧
-                Asset.Retain();
-                return Asset;
+                agent.Retain();
+                return agent;
             }
 
             // task.onCompleted += asset => {
@@ -56,39 +56,39 @@ namespace Litchi.AssetManagement
             //     // marktodo 处理progress
             //     if(asset != null)
             //     {
-            //         // Asset = new Asset(hash, type, null);
-            //         Asset.Retain();
-            //         AddAsset(Asset);
+            //         // AssetAgent = new AssetAgent(hash, type, null);
+            //         agent.Retain();
+            //         AddAsset(agent);
             //     }
             //     loadRequest.OnLoadCompleted(asset);
             // };
             // AssetLoadTaskManager.instance.StartTask(task);
-            Asset = AssetCreator(path, type);
-            Asset.Reset(hash, type, priority);
+            agent = agentCreator(path, type);
+            agent.Reset(hash, type, priority);
 
-            CacheAsset(Asset);
+            CacheAsset(agent);
 
             // marktodo 什么时候调用Retain
-            Asset.Retain();
-            // marktodo cache Asset
-            // AddAsset(hash, Asset);
-            AddToWaitList(Asset);
+            agent.Retain();
+            // marktodo cache AssetAgent
+            // AddAsset(hash, AssetAgent);
+            AddToWaitList(agent);
             // marktodo AssetLoadRequest对象池
-            return Asset;
+            return agent;
         }
 
-        public void CacheAsset(Asset Asset)
+        public void CacheAsset(AssetAgent agent)
         {
-            m_AssetCache.Add(Asset.hash, Asset);
-            // Asset existedData = null;
-            // if(m_AssetCache.TryGetValue(hash, out existedData))
+            m_AssetAgentCache.Add(agent.hash, agent);
+            // AssetAgent existedData = null;
+            // if(m_AssetAgentCache.TryGetValue(hash, out existedData))
             // {
-            //     existedData.MergeRefCount(Asset);
+            //     existedData.MergeRefCount(agent);
             //     return;
             // }
-            // m_AssetCache.Add(hash, Asset);
+            // m_AssetAgentCache.Add(hash, agent);
 
-            // int instanceID = Asset.asset.GetInstanceID();
+            // int instanceID = agent.asset.GetInstanceID();
             // if(m_InstanceID2PathHash.ContainsKey(instanceID))
             // {
             //     m_InstanceID2PathHash[instanceID] = hash;
@@ -99,19 +99,19 @@ namespace Litchi.AssetManagement
             // }
         }
 
-        public void AddToWaitList(Asset Asset)
+        public void AddToWaitList(AssetAgent agent)
         {
             if(m_WaitList.Count == 0)
             {
-                m_WaitList.AddFirst(Asset);
+                m_WaitList.AddFirst(agent);
                 return;
             }
             var cur = m_WaitList.First;
             while(cur != null)
             {
-                if(Asset.priority > cur.Value.priority)
+                if(agent.priority > cur.Value.priority)
                 {
-                    m_WaitList.AddBefore(cur, Asset);
+                    m_WaitList.AddBefore(cur, agent);
                 }
                 cur = cur.Next;
             }
@@ -149,23 +149,25 @@ namespace Litchi.AssetManagement
                 return;
             }
 
-            Asset Asset;
-            if(m_AssetCache.TryGetValue(hash, out Asset))
+            AssetAgent agent;
+            if(m_AssetAgentCache.TryGetValue(hash, out agent))
             {
-                Asset.Release();
+                agent.Release();
             }
             else
             {
                 // 未知资源
             }
+
+            m_AssetAgentCache.Remove(agent.hash);
         }
 
         public void UnloadUnusedAssets()
         {
             List<ulong> list = new List<ulong>();
-            foreach (var itor in m_AssetCache)
+            foreach (var itor in m_AssetAgentCache)
             {
-                Asset resourceData = itor.Value;
+                AssetAgent resourceData = itor.Value;
                 if (resourceData == null || resourceData.IsZeroRef())
                 {
                     list.Add(itor.Key);
@@ -174,14 +176,14 @@ namespace Litchi.AssetManagement
 
             for (int i = 0; i < list.Count; ++i)
             {
-                m_AssetCache.Remove(list[i]);
+                m_AssetAgentCache.Remove(list[i]);
             }
         }
 
-        // public static Asset CreateAsset(string path, Type type)
+        // public static AssetAgent CreateAsset(string path, Type type)
         // {
-        //     // return new ResourcesAsset();
-        //     return new BundleAsset();
+        //     // return new ResourcesAssetAgent();
+        //     return new BundleAssetAgent();
         // }
 
         /////////////////////////////分割线//////////////////////////////////

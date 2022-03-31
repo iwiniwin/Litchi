@@ -16,7 +16,7 @@ namespace Litchi.AssetManagement
     {
         private IBundleManifest m_BundleDataManifest;
 
-        private Dictionary<string, Bundle> m_BundleDataDict = new Dictionary<string, Bundle>();
+        private Dictionary<string, BundleAgent> m_BundleDataDict = new Dictionary<string, BundleAgent>();
         // 待卸载的AssetBundle缓存
         private LinkedList<string> m_UnloadBundleDataCache = new LinkedList<string>();
 
@@ -30,7 +30,7 @@ namespace Litchi.AssetManagement
             string bundleID = m_BundleDataManifest.GetBundleID(hash);
             if(bundleID == null) return null;
             AssetBundle assetBundle = null;
-            Bundle bundleData = LoadBundle(bundleID);
+            BundleAgent bundleData = LoadBundle(bundleID);
             if(bundleData != null)
             {
                 assetBundle = bundleData.assetBundle;
@@ -58,14 +58,14 @@ namespace Litchi.AssetManagement
             string bundleID = m_BundleDataManifest.GetBundleID(hash);
             if(bundleID == null) return;
 
-            Bundle bundleData = null;
+            BundleAgent bundleData = null;
             if(!m_BundleDataDict.TryGetValue(bundleID, out bundleData))
             {
                 return;
             }
 
             string[] dependencies = m_BundleDataManifest.GetDirectDependencies(bundleID);
-            Bundle dependBundleData = null;
+            BundleAgent dependBundleData = null;
             // marktodo 依赖卸载不用递归？
             foreach (var depend in dependencies)
             {
@@ -82,7 +82,7 @@ namespace Litchi.AssetManagement
             }
         }
 
-        private void AddToUnloadCache(Bundle bundleData)
+        private void AddToUnloadCache(BundleAgent bundleData)
         {
             if(bundleData == null || !bundleData.Unloadable()) return;
             if(m_UnloadBundleDataCache.Contains(bundleData.bundleID)) return;
@@ -102,7 +102,7 @@ namespace Litchi.AssetManagement
             if(m_UnloadBundleDataCache.Count == 0) return;
             string bundleID = m_UnloadBundleDataCache.First.Value;
 
-            Bundle bundleData = null;
+            BundleAgent bundleData = null;
             m_BundleDataDict.TryGetValue(bundleID, out bundleData);
 
             if(bundleData == null || !bundleData.Unloadable())
@@ -119,9 +119,9 @@ namespace Litchi.AssetManagement
             }
         }
 
-        public Bundle LoadBundle(string bundleID)
+        public BundleAgent LoadBundle(string bundleID)
         {
-            Bundle bundleData = null;
+            BundleAgent bundleData = null;
             if(!m_BundleDataDict.TryGetValue(bundleID, out bundleData))
             {
                 string[] dependencies = m_BundleDataManifest.GetDirectDependencies(bundleID);
@@ -132,7 +132,7 @@ namespace Litchi.AssetManagement
                 var assetBundle = LoadAssetBundle(bundleID);
                 if(assetBundle != null)
                 {
-                    // bundleData = new Bundle(bundleID, assetBundle);
+                    // bundleData = new BundleAgent(bundleID, assetBundle);
                     // m_BundleDataDict.Add(bundleID, bundleData);
                 }
             }
@@ -143,16 +143,16 @@ namespace Litchi.AssetManagement
         protected virtual AssetBundle LoadAssetBundle(string bundleID)
         {
             string path = m_BundleDataManifest.GetPath(bundleID);
-            AssetBundle bundle = AssetBundle.LoadFromFile(path);
-            if(bundle == null)
+            AssetBundle BundleAgent = AssetBundle.LoadFromFile(path);
+            if(BundleAgent == null)
             {
                 Logger.ErrorFormat("[BundleAssetLoader] load assetbundle failed, path = {0}", path);
             }
             else
             {
-                bundle.name = bundleID;
+                BundleAgent.name = bundleID;
             }
-            return bundle;
+            return BundleAgent;
         }
 
     }

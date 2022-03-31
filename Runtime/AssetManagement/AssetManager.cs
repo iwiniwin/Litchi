@@ -6,7 +6,7 @@ namespace Litchi.AssetManagement
 {
     public class AssetManager
     {
-        public static Func<string, Type, Asset> AssetCreator { get; set; } = CreateAsset;
+        public static Func<string, Type, AssetAgent> assetAgentCreator { get; set; } = CreateAsset;
 
         public static T Load<T>(string path) where T : Object
         {
@@ -20,32 +20,32 @@ namespace Litchi.AssetManagement
 
         public static AssetLoadRequest LoadAsync<T>(string path, AssetLoadPriority priority = AssetLoadPriority.Normal) where T : Object
         {
-            var data = AssetSystem.instance.LoadAsync(path, typeof(T), priority, AssetCreator);
+            var data = AssetAgentManager.instance.LoadAsync(path, typeof(T), priority, assetAgentCreator);
             return new AssetLoadRequest(data);
         }
 
         private static T TryLoad<T>(string path) where T : Object
         {
-            var data = AssetSystem.instance.Load(path, typeof(T), AssetCreator);
+            var data = AssetAgentManager.instance.Load(path, typeof(T), assetAgentCreator);
             return data.asset as T;
         }
 
         private static T TryLoad<T>(ulong pathHash) where T : Object
         {
             // return AssetLoaderFactory.Get()
-            // return AssetSystem.instance.load(pathHash)
+            // return AssetAgentManager.instance.load(pathHash)
             return default(T);
         }
 
-        private static Asset CreateAsset(string path, Type type)
+        private static AssetAgent CreateAsset(string path, Type type)
         {
-            // return new ResourcesAsset();
-            return new BundleAsset();
+            // return new ResourcesAssetAgent();
+            return new BundleAssetAgent();
         }
 
         public static void Unload(Object asset)
         {
-            AssetSystem.instance.Unload(asset);
+            AssetAgentManager.instance.Unload(asset);
         }
 
         public static void UnloadUnusedAssets()

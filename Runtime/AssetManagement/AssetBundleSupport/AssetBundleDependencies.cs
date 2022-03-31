@@ -5,22 +5,22 @@ using Object = UnityEngine.Object;
 
 namespace Litchi.AssetManagement
 {
-    public class AssetBundleDependencies : Asset 
+    public class AssetBundleDependencies : AssetAgent 
     {
         public AssetBundle mainBundle { get; protected set; }
 
         public override void Load()
         {
             string[] dependencies = null;
-            Bundle Bundle = new Bundle();
-            Bundle.Load();
-            mainBundle = Bundle.assetBundle;
+            BundleAgent BundleAgent = new BundleAgent();
+            BundleAgent.Load();
+            mainBundle = BundleAgent.assetBundle;
 
             if(dependencies != null && dependencies.Length > 0)
             {
                 foreach(var depend in dependencies)
                 {
-                    Bundle data = new Bundle();
+                    BundleAgent data = new BundleAgent();
                     data.Load();
                     // 缓存data?
                 }
