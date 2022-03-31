@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Litchi.AssetManagement
 {
-    public static class AssetDataManifest
+    public static class AssetManifest
     {
         private static Dictionary<ulong, string> m_HashToPath = new Dictionary<ulong, string>(); 
 

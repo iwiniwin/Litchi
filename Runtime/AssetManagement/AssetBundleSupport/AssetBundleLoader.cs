@@ -14,15 +14,15 @@ namespace Litchi.AssetManagement
 
     public class AssetBundleLoader : IAssetBundleLoader 
     {
-        private IAssetBundleDataManifest m_BundleDataManifest;
+        private IBundleManifest m_BundleDataManifest;
 
-        private Dictionary<string, AssetBundleData> m_BundleDataDict = new Dictionary<string, AssetBundleData>();
+        private Dictionary<string, Bundle> m_BundleDataDict = new Dictionary<string, Bundle>();
         // 待卸载的AssetBundle缓存
         private LinkedList<string> m_UnloadBundleDataCache = new LinkedList<string>();
 
-        public AssetBundleLoader(IAssetBundleDataManifest assetBundleDataManifest)
+        public AssetBundleLoader(IBundleManifest BundleManifest)
         {
-            m_BundleDataManifest = assetBundleDataManifest;
+            m_BundleDataManifest = BundleManifest;
         }
 
         public AssetBundle Load(ulong hash)
@@ -30,7 +30,7 @@ namespace Litchi.AssetManagement
             string bundleID = m_BundleDataManifest.GetBundleID(hash);
             if(bundleID == null) return null;
             AssetBundle assetBundle = null;
-            AssetBundleData bundleData = LoadAssetBundleData(bundleID);
+            Bundle bundleData = LoadBundle(bundleID);
             if(bundleData != null)
             {
                 assetBundle = bundleData.assetBundle;
@@ -53,19 +53,19 @@ namespace Litchi.AssetManagement
 
         }
 
-        public void TryUnloadAssetBundleData(ulong hash)
+        public void TryUnloadBundle(ulong hash)
         {
             string bundleID = m_BundleDataManifest.GetBundleID(hash);
             if(bundleID == null) return;
 
-            AssetBundleData bundleData = null;
+            Bundle bundleData = null;
             if(!m_BundleDataDict.TryGetValue(bundleID, out bundleData))
             {
                 return;
             }
 
             string[] dependencies = m_BundleDataManifest.GetDirectDependencies(bundleID);
-            AssetBundleData dependBundleData = null;
+            Bundle dependBundleData = null;
             // marktodo 依赖卸载不用递归？
             foreach (var depend in dependencies)
             {
@@ -82,7 +82,7 @@ namespace Litchi.AssetManagement
             }
         }
 
-        private void AddToUnloadCache(AssetBundleData bundleData)
+        private void AddToUnloadCache(Bundle bundleData)
         {
             if(bundleData == null || !bundleData.Unloadable()) return;
             if(m_UnloadBundleDataCache.Contains(bundleData.bundleID)) return;
@@ -102,7 +102,7 @@ namespace Litchi.AssetManagement
             if(m_UnloadBundleDataCache.Count == 0) return;
             string bundleID = m_UnloadBundleDataCache.First.Value;
 
-            AssetBundleData bundleData = null;
+            Bundle bundleData = null;
             m_BundleDataDict.TryGetValue(bundleID, out bundleData);
 
             if(bundleData == null || !bundleData.Unloadable())
@@ -119,20 +119,20 @@ namespace Litchi.AssetManagement
             }
         }
 
-        public AssetBundleData LoadAssetBundleData(string bundleID)
+        public Bundle LoadBundle(string bundleID)
         {
-            AssetBundleData bundleData = null;
+            Bundle bundleData = null;
             if(!m_BundleDataDict.TryGetValue(bundleID, out bundleData))
             {
                 string[] dependencies = m_BundleDataManifest.GetDirectDependencies(bundleID);
                 foreach (var depend in dependencies)
                 {
-                    LoadAssetBundleData(depend);
+                    LoadBundle(depend);
                 }
                 var assetBundle = LoadAssetBundle(bundleID);
                 if(assetBundle != null)
                 {
-                    // bundleData = new AssetBundleData(bundleID, assetBundle);
+                    // bundleData = new Bundle(bundleID, assetBundle);
                     // m_BundleDataDict.Add(bundleID, bundleData);
                 }
             }
@@ -146,7 +146,7 @@ namespace Litchi.AssetManagement
             AssetBundle bundle = AssetBundle.LoadFromFile(path);
             if(bundle == null)
             {
-                Logger.ErrorFormat("[AssetBundleAssetLoader] load assetbundle failed, path = {0}", path);
+                Logger.ErrorFormat("[BundleAssetLoader] load assetbundle failed, path = {0}", path);
             }
             else
             {

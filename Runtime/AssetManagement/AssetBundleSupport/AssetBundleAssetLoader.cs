@@ -11,14 +11,14 @@ using Object = UnityEngine.Object;
 /// </summary>
 namespace Litchi.AssetManagement
 {
-    public class AssetBundleAssetLoader : IAssetLoader 
+    public class BundleAssetLoader : IAssetLoader 
     {
-        private IAssetBundleDataManifest m_BundleDataManifest;
+        private IBundleManifest m_BundleDataManifest;
         private IAssetBundleLoader m_AssetBundleLoader;
 
-        public AssetBundleAssetLoader()
+        public BundleAssetLoader()
         {
-            m_BundleDataManifest = GetAssetBundleDataManifest();
+            m_BundleDataManifest = GetBundleManifest();
             m_AssetBundleLoader = GetAssetBundleLoader(m_BundleDataManifest);
         }
 
@@ -36,35 +36,35 @@ namespace Litchi.AssetManagement
 
         public IEnumerator LoadAsync(ulong hash, Type type, Action<Object> assetSetter)
         {
-            // var assetData = loadRequest.assetData;
-            // string path = AssetDataManifest.GetHashPath(assetData.hash);
+            // var Asset = loadRequest.Asset;
+            // string path = AssetManifest.GetHashPath(Asset.hash);
 
-            // AssetBundleCreateRequest bundleCreateRequest = m_AssetBundleLoader.LoadAsync(assetData.hash);
+            // AssetBundleCreateRequest bundleCreateRequest = m_AssetBundleLoader.LoadAsync(Asset.hash);
 
             // yield return bundleCreateRequest;
 
             // AssetBundle assetBundle = bundleCreateRequest.assetBundle;
             // if(assetBundle != null)
             // {
-            //     string name = m_BundleDataManifest.GetPathName(assetData.hash);
-            //     AssetBundleRequest request = assetBundle.LoadAssetAsync(name, assetData.type);
+            //     string name = m_BundleDataManifest.GetPathName(Asset.hash);
+            //     AssetBundleRequest request = assetBundle.LoadAssetAsync(name, Asset.type);
             //     request.priority = (int)loadRequest.priority;
             //     yield return request;
-            //     assetData.asset = request.asset;
+            //     Asset.asset = request.asset;
             // }
 
-            // m_AssetBundleLoader.TryUnload(assetData.hash);
+            // m_AssetBundleLoader.TryUnload(Asset.hash);
             return null;
         }
          
-        protected virtual IAssetBundleLoader GetAssetBundleLoader(IAssetBundleDataManifest manifest)
+        protected virtual IAssetBundleLoader GetAssetBundleLoader(IBundleManifest manifest)
         {
             return new AssetBundleLoader(manifest);
         }
 
-        protected virtual IAssetBundleDataManifest GetAssetBundleDataManifest()
+        protected virtual IBundleManifest GetBundleManifest()
         {
-            return new AssetBundleDataManifest();
+            return new BundleManifest();
         }
     }
 }

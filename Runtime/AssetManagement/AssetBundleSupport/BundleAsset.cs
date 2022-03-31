@@ -5,7 +5,7 @@ using Object = UnityEngine.Object;
 
 namespace Litchi.AssetManagement
 {
-    public class AssetBundleAssetData : AssetData 
+    public class BundleAsset : Asset 
     {
         private ResourceRequest m_Request;
 
@@ -26,7 +26,7 @@ namespace Litchi.AssetManagement
 
         public override void LoadAsync()
         {
-            string path = AssetDataManifest.GetHashPath(hash);
+            string path = AssetManifest.GetHashPath(hash);
             m_Request = Resources.LoadAsync(path, type);
         }
 

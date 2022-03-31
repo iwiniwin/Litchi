@@ -9,12 +9,12 @@ namespace Litchi.AssetManagement
     {
         public Object Load(ulong hash, Type type)
         {
-            return Resources.Load(AssetDataManifest.GetHashPath(hash), type);
+            return Resources.Load(AssetManifest.GetHashPath(hash), type);
         }
 
         public IEnumerator LoadAsync(ulong hash, Type type, Action<Object> assetSetter)
         {
-            string path = AssetDataManifest.GetHashPath(hash);
+            string path = AssetManifest.GetHashPath(hash);
             ResourceRequest request = Resources.LoadAsync(path, type);
             yield return request;
             assetSetter(request.asset);

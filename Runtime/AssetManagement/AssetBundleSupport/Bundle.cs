@@ -6,26 +6,26 @@ using Object = UnityEngine.Object;
 
 namespace Litchi.AssetManagement
 {
-    public class AssetBundleData : AssetData 
+    public class Bundle : Asset 
     {
         private AssetBundleCreateRequest m_Request;
-        private List<AssetBundleData> m_Dependencies = new List<AssetBundleData>();
+        private List<Bundle> m_Dependencies = new List<Bundle>();
         public override void Load()
         {
             string[] dependencies = null;
-            // AssetBundleData assetBundleData = new AssetBundleData();
-            // assetBundleData.Load();
-            // mainBundle = assetBundleData.assetBundle;
+            // Bundle Bundle = new Bundle();
+            // Bundle.Load();
+            // mainBundle = Bundle.assetBundle;
 
             if(dependencies != null && dependencies.Length > 0)
             {
                 foreach(var depend in dependencies)
                 {
-                    // AssetBundleData data = new AssetBundleData();
+                    // Bundle data = new Bundle();
                     // data.Load();
                     // 缓存data?
-                    AssetDataManager.instance.Load(depend, type, (vpath, type) => {
-                        return new AssetBundleData();
+                    AssetSystem.instance.Load(depend, type, (vpath, type) => {
+                        return new Bundle();
                     });
                 }
             }
@@ -40,12 +40,12 @@ namespace Litchi.AssetManagement
             {
                 foreach(var depend in dependencies)
                 {
-                    // AssetBundleData data = new AssetBundleData();
+                    // Bundle data = new Bundle();
                     // data.Load();
                     // 缓存data?
-                    var data = AssetDataManager.instance.LoadAsync(depend, type, priority, (vpath, type) => {
-                        return new AssetBundleData();
-                    }) as AssetBundleData;
+                    var data = AssetSystem.instance.LoadAsync(depend, type, priority, (vpath, type) => {
+                        return new Bundle();
+                    }) as Bundle;
                     m_Dependencies.Add(data);
                 }
             }
@@ -103,7 +103,7 @@ namespace Litchi.AssetManagement
             } 
         }
 
-        public AssetBundleData()
+        public Bundle()
         {
             // this.bundleID = bundleID;
             // this.assetBundle = assetBundle;

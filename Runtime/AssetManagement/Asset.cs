@@ -5,7 +5,7 @@ using Object = UnityEngine.Object;
 
 namespace Litchi.AssetManagement
 {
-    public abstract class AssetData : RefCounter
+    public abstract class Asset : RefCounter
     {
         public ulong hash { get; protected set; }
         public Type type { get; protected set; }

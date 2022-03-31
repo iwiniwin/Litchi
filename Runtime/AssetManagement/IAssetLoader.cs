@@ -19,7 +19,7 @@ namespace Litchi.AssetManagement
     {
         AssetBundle,
         Resources,
-        AssetDatabase,
+        Assetbase,
         Custom,
     }
 }

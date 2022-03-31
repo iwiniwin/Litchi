@@ -3,14 +3,14 @@ using System.Collections.Generic;
 
 namespace Litchi.AssetManagement
 {
-    public interface IAssetBundleDataManifest
+    public interface IBundleManifest
     {
         string GetBundleID(ulong hash);
         string[] GetDirectDependencies(string bundleID);
         string GetPath(string bundleID);
         string GetPathName(ulong hash);
     }
-    public class AssetBundleDataManifest : IAssetBundleDataManifest
+    public class BundleManifest : IBundleManifest
     {
         public string GetBundleID(ulong hash)
         {
