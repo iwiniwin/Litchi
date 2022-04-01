@@ -12,13 +12,6 @@ namespace Litchi.AssetManagement
         High = 2,
     } 
 
-    public enum AssetLoadStatus
-    {
-        Wait,
-        Loading,
-        Done,
-    }
-
     public class AssetLoadRequest : CustomYieldInstruction
     {
         private AssetAgent m_Agent;

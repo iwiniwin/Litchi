@@ -9,65 +9,66 @@ namespace Litchi.AssetManagement
     public class BundleAgent : AssetAgent 
     {
         private AssetBundleCreateRequest m_Request;
-        private List<BundleAgent> m_Dependencies = new List<BundleAgent>();
+        private List<string> m_DirectDependencies = new List<string>();
+        private List<BundleAgent> m_DependBundleAgents = new List<BundleAgent>();
+
         public override void Load()
         {
-            string[] dependencies = null;
-            // BundleAgent BundleAgent = new BundleAgent();
-            // BundleAgent.Load();
-            // mainBundle = BundleAgent.assetBundle;
-
-            if(dependencies != null && dependencies.Length > 0)
+            if(m_DirectDependencies.Count > 0)
             {
-                foreach(var depend in dependencies)
+                foreach(var dependBundleId in m_DirectDependencies)
                 {
-                    // BundleAgent data = new BundleAgent();
-                    // data.Load();
-                    // 缓存data?
-                    AssetAgentManager.instance.Load(depend, type, (vpath, type) => {
-                        return new BundleAgent();
-                    });
+                    AssetAgentManager.instance.Load<BundleAgent>(dependBundleId, typeof(AssetBundle));
                 }
             }
-            assetBundle = AssetBundle.LoadFromFile("path");
+            assetBundle = AssetBundle.LoadFromFile(path);
             OnLoadCompleted(assetBundle);
         }
 
         public override void LoadAsync()
         {
-            string[] dependencies = null;
-            if(dependencies != null && dependencies.Length > 0)
+            if(m_DirectDependencies.Count > 0)
             {
-                foreach(var depend in dependencies)
+                foreach(var dependBundleId in m_DirectDependencies)
                 {
-                    // BundleAgent data = new BundleAgent();
-                    // data.Load();
-                    // 缓存data?
-                    var data = AssetAgentManager.instance.LoadAsync(depend, type, priority, (vpath, type) => {
-                        return new BundleAgent();
-                    }) as BundleAgent;
-                    m_Dependencies.Add(data);
+                    var dependAgent = AssetAgentManager.instance.Load<BundleAgent>(dependBundleId, typeof(AssetBundle));
+                    m_DependBundleAgents.Add(dependAgent);
                 }
             }
-            m_Request = AssetBundle.LoadFromFileAsync("path");
+            m_Request = AssetBundle.LoadFromFileAsync(path);
+        }
+
+        public override void Unload()
+        {
+
         }
 
         public override void Update()
         {
             if(m_Request == null) return;
             progress = CalcProgress();
-            if(IsLoadDependenciesDone() && m_Request.isDone)
+            if(IsDependenciesLoadDone() && m_Request.isDone)
             {
                 assetBundle = m_Request.assetBundle;
                 OnLoadCompleted(assetBundle);
             }
         }
 
-        public bool IsLoadDependenciesDone()
+        public virtual float CalcProgress()
         {
-            foreach(var dependData in m_Dependencies)
+            float curProgress = m_Request.progress;
+            foreach(var dependAgent in m_DependBundleAgents)
             {
-                if(!dependData.isDone)
+                curProgress += dependAgent.progress;
+            }
+            return curProgress / (m_DependBundleAgents.Count + 1);
+        }
+
+        public bool IsDependenciesLoadDone()
+        {
+            foreach(var dependAgent in m_DependBundleAgents)
+            {
+                if(!dependAgent.isDone)
                 {
                     return false;
                 }
@@ -75,14 +76,11 @@ namespace Litchi.AssetManagement
             return true;
         }
 
-        public float CalcProgress()
+        public override void Init(string path, Type type, AssetLoadPriority priority)
         {
-            float curProgress = m_Request.progress;
-            foreach(var dependData in m_Dependencies)
-            {
-                curProgress += dependData.progress;
-            }
-            return curProgress / (m_Dependencies.Count + 1);
+            base.Init(path, type, priority);
+            m_DirectDependencies = null;  // marktodo getDirectDependencies
+            m_DependBundleAgents.Clear();
         }
 
         ///////////////////////////////////////分隔符///////////////////////////////////////

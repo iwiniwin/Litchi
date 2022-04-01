@@ -7,42 +7,70 @@ namespace Litchi.AssetManagement
 {
     public class BundleAssetAgent : AssetAgent 
     {
-        private ResourceRequest m_Request;
+        private AssetBundleRequest m_Request;
+        private BundleAgent m_BundleAgent;
+        private string m_AssetName;
+        private string m_BundleId;
 
         public override void Load()
         {
-            AssetBundleDependencies dependencies = new AssetBundleDependencies();
-            dependencies.Load();
-            Logger.Assert(dependencies.isDone, "Load后没有设置isDone");
-            if(dependencies.mainBundle == null)
+            var bundleAgent = AssetAgentManager.instance.Load<BundleAgent>(m_BundleId, typeof(AssetBundle));
+            if(bundleAgent.assetBundle == null)
             {
                 OnLoadCompleted(null);
             }
             else
             {
-                OnLoadCompleted(dependencies.mainBundle.LoadAsset("todoname"));
+                OnLoadCompleted(bundleAgent.assetBundle.LoadAsset(m_AssetName));
             }
         }
 
         public override void LoadAsync()
         {
-            m_Request = Resources.LoadAsync(path, type);
+            m_BundleAgent = AssetAgentManager.instance.LoadAsync<BundleAgent>(m_BundleId, typeof(AssetBundle), AssetLoadPriority.Normal);
+        }
+
+        public override void Unload()
+        {
+            
         }
 
         public override void Update()
         {
-            if(m_Request == null) return;
-            progress = m_Request.progress;
-            if(m_Request.isDone)
+            if(m_BundleAgent == null) return;
+            progress = CalcProgress();
+            if(m_BundleAgent.isDone)
             {
-                OnLoadCompleted(m_Request.asset);
+                if(m_BundleAgent.assetBundle == null)
+                {
+                    // marktodo unload bundleagent ?
+                    OnLoadCompleted(null);
+                    return;
+                }
+                if(m_Request == null)
+                {
+                    m_Request = m_BundleAgent.assetBundle.LoadAssetAsync(m_AssetName, type);
+                }
+                if(m_Request.isDone)
+                {
+                    OnLoadCompleted(m_Request.asset);
+                }
             }
         }
 
-        public override void Reset(string path, Type type, AssetLoadPriority priority)
+        public virtual float CalcProgress()
         {
-            base.Reset(path, type, priority);
+            float progress = m_Request == null ? 0 : m_Request.progress;
+            return (progress + m_BundleAgent.progress) / 2;
+        }
+
+        public override void Init(string path, Type type, AssetLoadPriority priority)
+        {
+            base.Init(path, type, priority);
+            m_AssetName = "";
+            m_BundleId = "";
             m_Request = null;
+            m_BundleAgent = null;
         }
     }
 }

@@ -20,6 +20,11 @@ namespace Litchi.AssetManagement
             m_Request = Resources.LoadAsync(path, type);
         }
 
+        public override void Unload()
+        {
+            
+        }
+
         public override void Update()
         {
             if(m_Request == null) return;
@@ -30,9 +35,9 @@ namespace Litchi.AssetManagement
             }
         }
 
-        public override void Reset(string path, Type type, AssetLoadPriority priority)
+        public override void Init(string path, Type type, AssetLoadPriority priority)
         {
-            base.Reset(path, type, priority);
+            base.Init(path, type, priority);
             m_Request = null;
         }
     }

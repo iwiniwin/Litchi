@@ -6,39 +6,37 @@ namespace Litchi.AssetManagement
 {
     public class AssetManager
     {
-        public static Func<string, Type, AssetAgent> assetAgentCreator { get; set; } = CreateAsset;
+        public static Func<string, Type, AssetAgent> assetAgentCreator { get; set; } = CreateAssetAgent;
 
         public static T Load<T>(string path) where T : Object
         {
-            T result = TryLoad<T>(path);
-            if(result == null)
-            {
-                Logger.Error("加载失败：" + path);
-            }
-            return result;
+            return Load(path, typeof(T)) as T;
+        }
+
+        public static Object Load(string path, Type type)
+        {
+            return AssetAgentManager.instance.Load(path, type, assetAgentCreator).asset;
         }
 
         public static AssetLoadRequest LoadAsync<T>(string path, AssetLoadPriority priority = AssetLoadPriority.Normal) where T : Object
         {
-            var data = AssetAgentManager.instance.LoadAsync(path, typeof(T), priority, assetAgentCreator);
-            return new AssetLoadRequest(data);
+            return LoadAsync(path, typeof(T), priority);
         }
 
-        private static T TryLoad<T>(string path) where T : Object
+        public static AssetLoadRequest LoadAsync(string path, Type type, AssetLoadPriority priority = AssetLoadPriority.Normal)
         {
-            var data = AssetAgentManager.instance.Load(path, typeof(T), assetAgentCreator);
-            return data.asset as T;
+            var agent = AssetAgentManager.instance.LoadAsync(path, type, priority, assetAgentCreator);
+            return new AssetLoadRequest(agent);
         }
 
-        private static AssetAgent CreateAsset(string path, Type type)
+        public static void Unload<T>(string path)
         {
-            // return new ResourcesAssetAgent();
-            return new BundleAssetAgent();
+            Unload(path, typeof(T));
         }
 
-        public static void Unload(Object asset)
+        public static void Unload(string path, Type type)
         {
-            AssetAgentManager.instance.Unload(asset);
+            AssetAgentManager.instance.Unload(path, type);
         }
 
         public static void UnloadUnusedAssets()
@@ -51,6 +49,12 @@ namespace Litchi.AssetManagement
         public static void UnloadAssetBundle()
         {
 
+        }
+
+        private static AssetAgent CreateAssetAgent(string path, Type type)
+        {
+            // return new ResourcesAssetAgent();
+            return new BundleAssetAgent();
         }
     }
 }
