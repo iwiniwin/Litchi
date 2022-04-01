@@ -12,7 +12,7 @@ namespace Litchi.AssetManagement
         private string m_AssetName;
         private string m_BundleId;
 
-        public override void Load()
+        protected override void OnLoad()
         {
             var bundleAgent = AssetAgentManager.instance.Load<BundleAgent>(m_BundleId, typeof(AssetBundle));
             if(bundleAgent.assetBundle == null)
@@ -25,17 +25,22 @@ namespace Litchi.AssetManagement
             }
         }
 
-        public override void LoadAsync()
+        protected override void OnLoadAsync()
         {
             m_BundleAgent = AssetAgentManager.instance.LoadAsync<BundleAgent>(m_BundleId, typeof(AssetBundle), AssetLoadPriority.Normal);
         }
 
-        public override void Unload()
+        protected override void OnUnload()
         {
-            
+            if(m_BundleAgent != null)
+            {
+                AssetAgentManager.instance.Unload(m_BundleAgent);
+                m_BundleAgent = null;
+            }
+            m_Request = null;
         }
 
-        public override void Update()
+        protected override void OnUpdate()
         {
             if(m_BundleAgent == null) return;
             progress = CalcProgress();
@@ -64,9 +69,8 @@ namespace Litchi.AssetManagement
             return (progress + m_BundleAgent.progress) / 2;
         }
 
-        public override void Init(string path, Type type, AssetLoadPriority priority)
+        protected override void OnInit()
         {
-            base.Init(path, type, priority);
             m_AssetName = "";
             m_BundleId = "";
             m_Request = null;

@@ -18,23 +18,39 @@ namespace Litchi.AssetManagement
 
         public float progress { get; protected set; }
 
-        public bool unloadable { get => IsZeroRef(); }
+        public virtual bool unloadable { get => IsZeroRef(); }
 
         public Action<Object> completed = delegate {};
 
-        public abstract void Load();
+        protected abstract void OnLoad();
 
-        public abstract void LoadAsync();
+        protected abstract void OnLoadAsync();
 
-        public abstract void Unload();
+        protected abstract void OnUnload();
 
-        public abstract void Update();
+        protected abstract void OnUpdate();
 
-        protected void OnLoadCompleted(Object asset)
+        protected abstract void OnInit();
+
+        public void Load()
         {
-            this.asset = asset;
-            this.isDone = true;
-            completed(this.asset);
+            OnLoad();
+        }
+
+        public void LoadAsync()
+        {
+            OnLoadAsync();
+        }
+
+        public void Unload()
+        {
+            OnUnload();
+            this.asset = null;
+        }
+
+        public void Update()
+        {
+            OnUpdate();
         }
 
         public virtual void Init(string path, Type type, AssetLoadPriority priority)
@@ -47,6 +63,14 @@ namespace Litchi.AssetManagement
             this.priority = priority;
             this.completed = delegate {};
             this.id = GenerateId(path, type);
+            OnInit();
+        }
+
+        protected void OnLoadCompleted(Object asset)
+        {
+            this.asset = asset;
+            this.isDone = true;
+            completed(this.asset);
         }
 
         public static string GenerateId(string path, Type type)

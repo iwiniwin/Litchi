@@ -59,6 +59,11 @@ namespace Litchi.AssetManagement
             }
         }
 
+        public void Unload(AssetAgent agent)
+        {
+            Unload(agent.path, agent.type);
+        }
+
         public void UnloadUnusedAssets()
         {
 

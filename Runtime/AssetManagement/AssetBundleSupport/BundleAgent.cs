@@ -12,7 +12,7 @@ namespace Litchi.AssetManagement
         private List<string> m_DirectDependencies = new List<string>();
         private List<BundleAgent> m_DependBundleAgents = new List<BundleAgent>();
 
-        public override void Load()
+        protected override void OnLoad()
         {
             if(m_DirectDependencies.Count > 0)
             {
@@ -25,7 +25,7 @@ namespace Litchi.AssetManagement
             OnLoadCompleted(assetBundle);
         }
 
-        public override void LoadAsync()
+        protected override void OnLoadAsync()
         {
             if(m_DirectDependencies.Count > 0)
             {
@@ -38,12 +38,25 @@ namespace Litchi.AssetManagement
             m_Request = AssetBundle.LoadFromFileAsync(path);
         }
 
-        public override void Unload()
+        protected override void OnUnload()
         {
+            if(m_DependBundleAgents.Count > 0)
+            {
+                foreach(var dependAgent in m_DependBundleAgents)
+                {
+                    AssetAgentManager.instance.Unload(dependAgent);
+                }
+                m_DependBundleAgents.Clear();
+            }
 
+            if(assetBundle != null)
+            {
+                assetBundle.Unload(true);
+                assetBundle = null;
+            }
         }
 
-        public override void Update()
+        protected override void OnUpdate()
         {
             if(m_Request == null) return;
             progress = CalcProgress();
@@ -76,9 +89,8 @@ namespace Litchi.AssetManagement
             return true;
         }
 
-        public override void Init(string path, Type type, AssetLoadPriority priority)
+        protected override void OnInit()
         {
-            base.Init(path, type, priority);
             m_DirectDependencies = null;  // marktodo getDirectDependencies
             m_DependBundleAgents.Clear();
         }
@@ -107,17 +119,17 @@ namespace Litchi.AssetManagement
             // this.assetBundle = assetBundle;
         }
 
-        public override void Retain()
-        {
-            base.Retain();
-            m_LastUsedTime = Stopwatch.GetTimestamp();
-        }
+        // public override void Retain()
+        // {
+        //     base.Retain();
+        //     m_LastUsedTime = Stopwatch.GetTimestamp();
+        // }
 
-        public override void Release()
-        {
-            base.Release();
-            m_LastUsedTime = Stopwatch.GetTimestamp();
-        }
+        // public override void Release()
+        // {
+        //     base.Release();
+        //     m_LastUsedTime = Stopwatch.GetTimestamp();
+        // }
 
         public bool TimeOut()
         {
