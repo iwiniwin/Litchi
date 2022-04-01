@@ -5,28 +5,26 @@ namespace Litchi.AssetManagement
 {
     public static class AssetManifest
     {
-        private static Dictionary<ulong, string> m_HashToPath = new Dictionary<ulong, string>(); 
+        private static Dictionary<string, string> m_HashToPath = new Dictionary<string, string>(); 
 
-        public static ulong GetPathHash(string path)
+        public static string GetPathHash(string path)
         {
-            ulong hash = HashUtility.FNV(path);
 
-            // if(IsAssetBundleResource(hash))  // 不缓存？
+            // if(IsAssetBundleResource(path))  // 不缓存？
             // {
             //     return 
             // }
 
-            if(!m_HashToPath.ContainsKey(hash))
+            if(!m_HashToPath.ContainsKey(path))
             {
-                m_HashToPath.Add(hash, path);
+                m_HashToPath.Add(path, path);
             }
-            return hash;
+            return path;
         }
 
-        public static string GetHashPath(ulong hash)
+        public static string GetHashPath(string path)
         {
-            string path = null;
-            m_HashToPath.TryGetValue(hash, out path);
+            m_HashToPath.TryGetValue(path, out path);
             return path;
         }
     }

@@ -6,8 +6,8 @@ namespace Litchi.AssetManagement
 {
     public interface IAssetLoader 
     {
-        Object Load(ulong hash, Type type);
-        IEnumerator LoadAsync(ulong hash, Type type, Action<Object> assetSetter);
+        Object Load(string path, Type type);
+        IEnumerator LoadAsync(string path, Type type, Action<Object> assetSetter);
     }
 
     public interface ICustomAssetLoader : IAssetLoader

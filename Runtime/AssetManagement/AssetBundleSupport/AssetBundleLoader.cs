@@ -5,11 +5,11 @@ namespace Litchi.AssetManagement
 {
     public interface IAssetBundleLoader
     {
-        AssetBundle Load(ulong hash);
+        AssetBundle Load(string path);
 
-        AssetBundleCreateRequest LoadAsync(ulong hash);
+        AssetBundleCreateRequest LoadAsync(string path);
 
-        void TryUnload(ulong hash);
+        void TryUnload(string path);
     }
 
     public class AssetBundleLoader : IAssetBundleLoader 
@@ -25,9 +25,9 @@ namespace Litchi.AssetManagement
             m_BundleDataManifest = BundleManifest;
         }
 
-        public AssetBundle Load(ulong hash)
+        public AssetBundle Load(string path)
         {
-            string bundleID = m_BundleDataManifest.GetBundleID(hash);
+            string bundleID = m_BundleDataManifest.GetBundleID(path);
             if(bundleID == null) return null;
             AssetBundle assetBundle = null;
             BundleAgent bundleData = LoadBundle(bundleID);
@@ -38,9 +38,9 @@ namespace Litchi.AssetManagement
             return assetBundle;
         }
 
-        public AssetBundleCreateRequest LoadAsync(ulong hash)
+        public AssetBundleCreateRequest LoadAsync(string path)
         {
-            string bundleID = m_BundleDataManifest.GetBundleID(hash);
+            string bundleID = m_BundleDataManifest.GetBundleID(path);
             if(bundleID == null) return null;
             // marktodo
             // 处理依赖的 LoadAsync
@@ -48,14 +48,14 @@ namespace Litchi.AssetManagement
             return request;
         }
 
-        public void TryUnload(ulong hash)
+        public void TryUnload(string path)
         {
 
         }
 
-        public void TryUnloadBundle(ulong hash)
+        public void TryUnloadBundle(string path)
         {
-            string bundleID = m_BundleDataManifest.GetBundleID(hash);
+            string bundleID = m_BundleDataManifest.GetBundleID(path);
             if(bundleID == null) return;
 
             BundleAgent bundleData = null;

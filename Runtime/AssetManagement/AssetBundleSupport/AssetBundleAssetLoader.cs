@@ -22,38 +22,37 @@ namespace Litchi.AssetManagement
             m_AssetBundleLoader = GetAssetBundleLoader(m_BundleDataManifest);
         }
 
-        public Object Load(ulong hash, Type type)
+        public Object Load(string path, Type type)
         {
             Object asset = null;
-            AssetBundle assetBundle = m_AssetBundleLoader.Load(hash);
+            AssetBundle assetBundle = m_AssetBundleLoader.Load(path);
             if(assetBundle != null)
             {
-                asset = assetBundle.LoadAsset(m_BundleDataManifest.GetPathName(hash), type);
+                asset = assetBundle.LoadAsset(m_BundleDataManifest.GetPathName(path), type);
             }
-            m_AssetBundleLoader.TryUnload(hash);
+            m_AssetBundleLoader.TryUnload(path);
             return asset;
         }
 
-        public IEnumerator LoadAsync(ulong hash, Type type, Action<Object> assetSetter)
+        public IEnumerator LoadAsync(string path, Type type, Action<Object> assetSetter)
         {
             // var agent = loadRequest.agent;
-            // string path = AssetManifest.GetHashPath(agent.hash);
 
-            // AssetBundleCreateRequest bundleCreateRequest = m_AssetBundleLoader.LoadAsync(agent.hash);
+            // AssetBundleCreateRequest bundleCreateRequest = m_AssetBundleLoader.LoadAsync(agent.path);
 
             // yield return bundleCreateRequest;
 
             // AssetBundle assetBundle = bundleCreateRequest.assetBundle;
             // if(assetBundle != null)
             // {
-            //     string name = m_BundleDataManifest.GetPathName(agent.hash);
+            //     string name = m_BundleDataManifest.GetPathName(agent.path);
             //     AssetBundleRequest request = assetBundle.LoadAssetAsync(name, agent.type);
             //     request.priority = (int)loadRequest.priority;
             //     yield return request;
             //     agent.asset = request.asset;
             // }
 
-            // m_AssetBundleLoader.TryUnload(agent.hash);
+            // m_AssetBundleLoader.TryUnload(agent.path);
             return null;
         }
          

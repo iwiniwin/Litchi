@@ -29,7 +29,7 @@ namespace Litchi.AssetManagement
                     });
                 }
             }
-            assetBundle = AssetBundle.LoadFromFile("hash");
+            assetBundle = AssetBundle.LoadFromFile("path");
             OnLoadCompleted(assetBundle);
         }
 
@@ -49,7 +49,7 @@ namespace Litchi.AssetManagement
                     m_Dependencies.Add(data);
                 }
             }
-            m_Request = AssetBundle.LoadFromFileAsync("hash");
+            m_Request = AssetBundle.LoadFromFileAsync("path");
         }
 
         public override void Update()

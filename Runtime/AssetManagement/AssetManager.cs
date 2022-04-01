@@ -30,13 +30,6 @@ namespace Litchi.AssetManagement
             return data.asset as T;
         }
 
-        private static T TryLoad<T>(ulong pathHash) where T : Object
-        {
-            // return AssetLoaderFactory.Get()
-            // return AssetAgentManager.instance.load(pathHash)
-            return default(T);
-        }
-
         private static AssetAgent CreateAsset(string path, Type type)
         {
             // return new ResourcesAssetAgent();

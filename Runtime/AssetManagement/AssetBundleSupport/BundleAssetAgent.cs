@@ -26,7 +26,6 @@ namespace Litchi.AssetManagement
 
         public override void LoadAsync()
         {
-            string path = AssetManifest.GetHashPath(hash);
             m_Request = Resources.LoadAsync(path, type);
         }
 
@@ -40,9 +39,9 @@ namespace Litchi.AssetManagement
             }
         }
 
-        public override void Reset(ulong hash, Type type, AssetLoadPriority priority)
+        public override void Reset(string path, Type type, AssetLoadPriority priority)
         {
-            base.Reset(hash, type, priority);
+            base.Reset(path, type, priority);
             m_Request = null;
         }
     }

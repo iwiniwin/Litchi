@@ -7,7 +7,7 @@ namespace Litchi.AssetManagement
 {
     public abstract class AssetAgent : RefCounter
     {
-        public ulong hash { get; protected set; }
+        public string path { get; protected set; }
         public Type type { get; protected set; }
         public AssetLoadPriority priority { get; protected set; }
 
@@ -31,12 +31,12 @@ namespace Litchi.AssetManagement
             completed(this.asset);
         }
 
-        public virtual void Reset(ulong hash, Type type, AssetLoadPriority priority)
+        public virtual void Reset(string path, Type type, AssetLoadPriority priority)
         {
             this.asset = null;
             this.isDone = false;
             this.progress = 0;
-            this.hash = hash;
+            this.path = path;
             this.type = type;
             this.priority = priority;
             this.completed = delegate {};

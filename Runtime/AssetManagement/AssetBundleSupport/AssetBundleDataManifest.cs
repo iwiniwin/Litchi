@@ -5,14 +5,14 @@ namespace Litchi.AssetManagement
 {
     public interface IBundleManifest
     {
-        string GetBundleID(ulong hash);
+        string GetBundleID(string path);
         string[] GetDirectDependencies(string bundleID);
         string GetPath(string bundleID);
-        string GetPathName(ulong hash);
+        string GetPathName(string path);
     }
     public class BundleManifest : IBundleManifest
     {
-        public string GetBundleID(ulong hash)
+        public string GetBundleID(string path)
         {
             return "null";
         }
@@ -27,7 +27,7 @@ namespace Litchi.AssetManagement
             return "jjjj " + bundleID;
         }
 
-        public string GetPathName(ulong hash)
+        public string GetPathName(string path)
         {
             return null;
         }
