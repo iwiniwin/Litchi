@@ -1,7 +1,7 @@
 using UnityEngine;
 using System;
 
-namespace Litchi.AssetManage
+namespace Litchi.AssetManagement
 {
     public enum AssetLoaderType
     {

@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 using Litchi.IO;
-using Litchi.AssetManage;
+using Litchi.AssetManagement;
 #if UNITY_EDITOR
 using UnityEditor;
 #endif
@@ -44,7 +44,7 @@ namespace Litchi.Config
         {
             if(VFileSystem.Exists(path))
             {
-                return AssetManager.LoadAsset<T>(path);                
+                return AssetManager.Load<T>(path);                
             }
             else
             {
