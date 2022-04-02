@@ -22,15 +22,18 @@ namespace Litchi.AssetManagement
 
         public bool isInterrupt { get; set; } = false;
 
-        public Action<Object> completed = delegate {};
+        public Action<Object> completed => m_Agent.completed;
 
         public AssetLoadRequest(AssetAgent agent)
         {
             m_Agent = agent;
-            // marktodo = 还是 +=
-            m_Agent.completed = completed;
         }
         
         public override bool keepWaiting => !isDone;
+
+        public void Dispose()
+        {
+
+        }
     }
 }
