@@ -18,7 +18,7 @@ namespace Litchi.AssetManagement
         public float progress { get; protected set; }
 
         public virtual bool unloadable { get => IsZeroRef(); }
-        public virtual bool delayUnload { get; } = false;  // 延迟卸载的资源，引用为0时不会立即卸载，会继续缓存
+        public virtual bool delayUnload { get => false; }  // 延迟卸载的资源，引用为0时不会立即卸载，会继续缓存
 
         public Action<Object> completed = delegate {};
 

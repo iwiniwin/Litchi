@@ -10,12 +10,12 @@ namespace Litchi.AssetManagement
     {
         private AssetBundleCreateRequest m_Request;
         public AssetBundle assetBundle { get; private set; }
-        private List<string> m_DirectDependencies = new List<string>();
+        private string[] m_DirectDependencies;
         private List<BundleAgent> m_DependBundleAgents = new List<BundleAgent>();
 
         protected override void OnLoad()
         {
-            if(m_DirectDependencies.Count > 0)
+            if(m_DirectDependencies.Length > 0)
             {
                 foreach(var dependBundleId in m_DirectDependencies)
                 {
@@ -28,7 +28,7 @@ namespace Litchi.AssetManagement
 
         protected override void OnLoadAsync()
         {
-            if(m_DirectDependencies.Count > 0)
+            if(m_DirectDependencies.Length > 0)
             {
                 foreach(var dependBundleId in m_DirectDependencies)
                 {
@@ -92,7 +92,7 @@ namespace Litchi.AssetManagement
 
         protected override void OnInit()
         {
-            m_DirectDependencies = null;  // marktodo getDirectDependencies
+            m_DirectDependencies = BundleManifestUtility.GetDirectDependencies(path);
             m_DependBundleAgents.Clear();
         }
 

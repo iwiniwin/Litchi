@@ -8,6 +8,8 @@ namespace Litchi.AssetManagement
     {
         public static Func<string, Type, AssetAgent> assetAgentCreator { get; set; } = CreateAssetAgent;
 
+        public static IBundleManifest bundleManifest { get => BundleManifestUtility.manifest; set => BundleManifestUtility.manifest = value; }
+
         public static T Load<T>(string path) where T : Object
         {
             return Load(path, typeof(T)) as T;

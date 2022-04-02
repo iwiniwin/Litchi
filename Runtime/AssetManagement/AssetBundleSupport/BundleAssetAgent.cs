@@ -70,8 +70,8 @@ namespace Litchi.AssetManagement
 
         protected override void OnInit()
         {
-            m_AssetName = "";
-            m_BundleId = "";
+            m_AssetName = BundleManifestUtility.GetAssetName(path);
+            m_BundleId = BundleManifestUtility.GetBundleId(path);
             m_Request = null;
             m_BundleAgent = null;
         }
