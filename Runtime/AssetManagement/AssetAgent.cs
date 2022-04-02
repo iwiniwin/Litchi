@@ -1,7 +1,6 @@
 using System;
-using System.Collections;
-using UnityEngine;
 using Object = UnityEngine.Object;
+using System.Diagnostics;
 
 namespace Litchi.AssetManagement
 {
@@ -19,6 +18,7 @@ namespace Litchi.AssetManagement
         public float progress { get; protected set; }
 
         public virtual bool unloadable { get => IsZeroRef(); }
+        public virtual bool delayUnload { get; } = false;  // 延迟卸载的资源，引用为0时不会立即卸载，会继续缓存
 
         public Action<Object> completed = delegate {};
 
@@ -70,12 +70,44 @@ namespace Litchi.AssetManagement
         {
             this.asset = asset;
             this.isDone = true;
+            if(this.asset == null)
+            {
+                AssetAgentManager.instance.Unload(this);
+            }
             completed(this.asset);
         }
 
         public static string GenerateId(string path, Type type)
         {
             return path + "_" + type.FullName;
+        }
+    }
+
+    /// <summary>
+    /// 计时AssetAgent
+    /// </summary>
+    public abstract class TimeAssetAgent : AssetAgent
+    {
+        protected long m_LastUsedTime = Stopwatch.GetTimestamp();
+
+        public override void Retain()
+        {
+            base.Retain();
+            m_LastUsedTime = Stopwatch.GetTimestamp();
+        }
+
+        public override void Release()
+        {
+            base.Release();
+            m_LastUsedTime = Stopwatch.GetTimestamp();
+        }
+
+        public virtual long elapsedMilliseconds
+        {
+            get
+            {
+                return (Stopwatch.GetTimestamp() - m_LastUsedTime) * 1000 / Stopwatch.Frequency;
+            } 
         }
     }
 }

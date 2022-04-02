@@ -11,7 +11,9 @@ namespace Litchi.AssetManagement
         private Dictionary<int, string> m_InstanceID2PathHash = new Dictionary<int, string>();
 
         private LinkedList<AssetAgent> m_WaitLoadList = new LinkedList<AssetAgent>();
+        private static int maxDelayUnloadCount = 10;
         private LinkedList<AssetAgent> m_WaitUnloadList = new LinkedList<AssetAgent>();
+        private LinkedList<AssetAgent> m_DelayUnloadList = new LinkedList<AssetAgent>();
         public static int maxLoadingCount = 8;
         private LinkedList<AssetAgent> m_LoadingList = new LinkedList<AssetAgent>();
 
@@ -31,7 +33,6 @@ namespace Litchi.AssetManagement
             agent.Retain();
             CacheAgent(agent);
             agent.Load();
-            Logger.Assert(agent.isDone, "Load后没有设置isDone");
             return agent;
         }
 
@@ -140,6 +141,7 @@ namespace Litchi.AssetManagement
                 }
             }
 
+            m_DelayUnloadList.Clear();
             var curUnload = m_WaitUnloadList.First;
             while(curUnload != null)
             {
@@ -148,14 +150,31 @@ namespace Litchi.AssetManagement
                 curUnload = curUnload.Next;
                 // if(busy) break;
                 if(!agent.isDone) continue;
-                m_WaitUnloadList.Remove(cur);
                 if(!agent.unloadable)
                 {
+                    m_WaitUnloadList.Remove(cur);
                     continue;
                 }
-                agent.Unload();   
-                m_AssetAgentCache.Remove(agent.id);
+                if(agent.delayUnload)
+                {
+                    m_DelayUnloadList.AddLast(cur);
+                    if(m_DelayUnloadList.Count > maxDelayUnloadCount)
+                    {
+                        var firstDelay = m_DelayUnloadList.First;
+                        m_DelayUnloadList.RemoveFirst();
+                        DoUnload(firstDelay);
+                    }
+                    continue;
+                }
+                DoUnload(cur);
             }
+        }
+
+        private void DoUnload(LinkedListNode<AssetAgent> node)
+        {
+            m_WaitUnloadList.Remove(node);
+            node.Value.Unload();
+            m_AssetAgentCache.Remove(node.Value.id);
         }
     }
 }

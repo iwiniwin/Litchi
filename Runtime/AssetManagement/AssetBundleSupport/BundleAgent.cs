@@ -6,9 +6,10 @@ using Object = UnityEngine.Object;
 
 namespace Litchi.AssetManagement
 {
-    public class BundleAgent : AssetAgent 
+    public class BundleAgent : TimeAssetAgent 
     {
         private AssetBundleCreateRequest m_Request;
+        public AssetBundle assetBundle { get; private set; }
         private List<string> m_DirectDependencies = new List<string>();
         private List<BundleAgent> m_DependBundleAgents = new List<BundleAgent>();
 
@@ -95,60 +96,8 @@ namespace Litchi.AssetManagement
             m_DependBundleAgents.Clear();
         }
 
-        ///////////////////////////////////////分隔符///////////////////////////////////////
-
         public static readonly long kBundleTimeOut = 10000;  // ms
 
-        public AssetBundle assetBundle { get; private set; }
-
-        public string bundleID { get; private set; }
-
-        private long m_LastUsedTime = Stopwatch.GetTimestamp();
-
-        public long elapsedMilliseconds
-        {
-            get
-            {
-                return (Stopwatch.GetTimestamp() - m_LastUsedTime) * 1000 / Stopwatch.Frequency;
-            } 
-        }
-
-        public BundleAgent()
-        {
-            // this.bundleID = bundleID;
-            // this.assetBundle = assetBundle;
-        }
-
-        // public override void Retain()
-        // {
-        //     base.Retain();
-        //     m_LastUsedTime = Stopwatch.GetTimestamp();
-        // }
-
-        // public override void Release()
-        // {
-        //     base.Release();
-        //     m_LastUsedTime = Stopwatch.GetTimestamp();
-        // }
-
-        public bool TimeOut()
-        {
-            return elapsedMilliseconds > kBundleTimeOut;
-        }
-
-        public void Unload(bool unloadAllLoadedObjects)
-        {
-            if(assetBundle != null)
-            {
-                assetBundle.Unload(unloadAllLoadedObjects);
-                assetBundle = null;
-            }
-        }
-
-        // 是否可卸载
-        public bool Unloadable()
-        {
-            return IsZeroRef();
-        }
+        public override bool delayUnload => elapsedMilliseconds < kBundleTimeOut;
     }
 }

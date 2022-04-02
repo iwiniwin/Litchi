@@ -48,7 +48,6 @@ namespace Litchi.AssetManagement
             {
                 if(m_BundleAgent.assetBundle == null)
                 {
-                    // marktodo unload bundleagent ?
                     OnLoadCompleted(null);
                     return;
                 }
